@@ -13,8 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -26,21 +24,35 @@ public class EquipoWebController {
     public EquipoWebController(EquipoService equipoService) {
         this.equipoService = equipoService;
     }
-
-    // ── Redirección QR → SharePoint ───────────────────────────────────────
     @GetMapping("/redirect/{codigo}")
     public String redirigirAExcel(@PathVariable String codigo) {
-        Equipo equipo = equipoService.buscarPorCodigo(codigo);
-        String serial = equipo.getSerial();
-        if (serial == null || serial.isBlank()) {
-            return "redirect:/equipo/" + codigo;
-        }
-        // Reemplaza la línea donde dice 'https://mardique.sharepoint.com/...' por:
-        String sharepointUrl = "https://spmardiquesa-my.sharepoint.com/personal/aprendizti_spmardique_com/Documents/INVENTARIO%20PRUEBA/Hoja%20de%20vida%20de%20equipos.xlsx"
-                + "?web=1&activeCell=" + URLEncoder.encode(serial, StandardCharsets.UTF_8) + "!A1";
-        return "redirect:" + sharepointUrl;
-    }
 
+        Equipo equipo = equipoService.buscarPorCodigo(codigo);
+
+        if (equipo == null) {
+            return "redirect:/equipos";
+        }
+
+        // EL NOMBRE DE LA HOJA ES EL SERIAL
+        String serial = equipo.getSerial()
+                .trim()
+                .replace("'", "");
+
+        // LINK REAL DEL EXCEL
+        String baseUrl =
+                "https://spmardiquesa.sharepoint.com/:x:/r/sites/TI/_layouts/15/Doc.aspx?sourcedoc=%7BA82F2272-AA70-48D1-AB55-51FEF73EC1AA%7D&file=FT-GMT-SPM-027%20Hoja%20de%20vida%20equipos%20de%20computo%202026.xlsx&action=default";
+
+        // FORMATO QUE SHAREPOINT SÍ RESPETA
+        String activeCell =
+                "%27" + serial + "%27!A1";
+
+        String finalUrl =
+                baseUrl
+                        + "&ActiveCell=" + activeCell
+                        + "&mobileredirect=false";
+
+        return "redirect:" + finalUrl;
+    }
     // ── Dashboard ─────────────────────────────────────────────────────────
     @GetMapping("/")
     public String dashboard(Model model) {
