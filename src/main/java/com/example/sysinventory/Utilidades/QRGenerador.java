@@ -5,6 +5,7 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
@@ -17,11 +18,11 @@ public class QRGenerador {
     private static final int ANCHO  = 300;
     private static final int ALTO   = 300;
 
-    // URL del nuevo despliegue en Render
-    private static final String BASE_URL = "https://spmardique.onrender.com/redirect/";
+    @Value("${app.base-url}")
+    private String baseUrl;
 
     public String generarBase64(String codigo) throws WriterException, IOException {
-        String url = BASE_URL + codigo;
+        String url = baseUrl + "/redirect/" + codigo;
 
         QRCodeWriter writer = new QRCodeWriter();
         BitMatrix matrix = writer.encode(url, BarcodeFormat.QR_CODE, ANCHO, ALTO);
@@ -33,7 +34,7 @@ public class QRGenerador {
     }
 
     public byte[] generarBytes(String codigo) throws WriterException, IOException {
-        String url = BASE_URL + codigo;
+        String url = baseUrl + "/redirect/" + codigo;
 
         QRCodeWriter writer = new QRCodeWriter();
         BitMatrix matrix = writer.encode(url, BarcodeFormat.QR_CODE, ANCHO, ALTO);
