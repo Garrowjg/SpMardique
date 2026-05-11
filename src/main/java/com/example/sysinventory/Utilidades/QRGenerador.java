@@ -17,8 +17,8 @@ public class QRGenerador {
     private static final int ANCHO  = 300;
     private static final int ALTO   = 300;
 
-    // CAMBIADO: Ahora apunta al endpoint de redirección a SharePoint
-    private static final String BASE_URL = "https://inventario-ti.onrender.com/redirect/";
+    // URL del nuevo despliegue en Render
+    private static final String BASE_URL = "https://spmardique.onrender.com/redirect/";
 
     public String generarBase64(String codigo) throws WriterException, IOException {
         String url = BASE_URL + codigo;

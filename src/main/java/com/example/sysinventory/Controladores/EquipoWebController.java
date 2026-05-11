@@ -35,9 +35,9 @@ public class EquipoWebController {
         if (serial == null || serial.isBlank()) {
             return "redirect:/equipo/" + codigo;
         }
-        String hoja = URLEncoder.encode(serial, StandardCharsets.UTF_8);
-        String sharepointUrl = "https://mardique.sharepoint.com/sites/IT/Documentos/Hojas%20de%20Vida.xlsx"
-                + "?web=1&activeCell=" + hoja + "!A1";
+        // Reemplaza la línea donde dice 'https://mardique.sharepoint.com/...' por:
+        String sharepointUrl = "https://spmardiquesa-my.sharepoint.com/personal/aprendizti_spmardique_com/Documents/INVENTARIO%20PRUEBA/Hoja%20de%20vida%20de%20equipos.xlsx"
+                + "?web=1&activeCell=" + URLEncoder.encode(serial, StandardCharsets.UTF_8) + "!A1";
         return "redirect:" + sharepointUrl;
     }
 
