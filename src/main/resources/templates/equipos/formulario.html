@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Registrar Equipo — SysInventory | Mardique</title>
+    <style>
+        :root{
+            --gold:#C49A28;--gold-l:#D4AF37;--gold-d:#9A7A1A;
+            --navy:#0D1B2A;--blue:#2E86C1;--danger:#C0392B;
+            --bg:#F2F4F7;--card:#fff;--text:#1C2833;--muted:#6C7A89;
+            --border:#DDE1E7;--r:10px;--sh:0 2px 14px rgba(0,0,0,.07);
+        }
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh}
+
+        .sidebar{width:250px;background:var(--navy);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:200}
+        .s-logo{padding:1.3rem 1.2rem;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:.75rem}
+        .s-logo-img{height:34px;object-fit:contain;filter:brightness(0) invert(1)}
+        .s-logo-txt{color:rgba(255,255,255,.55);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;line-height:1.4}
+        .s-sect{padding:.8rem 1.2rem .2rem;font-size:.6rem;color:rgba(255,255,255,.28);text-transform:uppercase;letter-spacing:.1em;font-weight:700}
+        .s-link{display:flex;align-items:center;gap:.7rem;padding:.65rem 1.2rem;color:rgba(255,255,255,.6);text-decoration:none;font-size:.84rem;border-left:3px solid transparent;transition:all .18s}
+        .s-link:hover,.s-link.active{color:#fff;background:rgba(255,255,255,.06);border-left-color:var(--gold)}
+        .s-link svg{width:15px;height:15px;flex-shrink:0}
+        .s-bottom{margin-top:auto;padding:1rem 1.2rem;border-top:1px solid rgba(255,255,255,.06);font-size:.65rem;color:rgba(255,255,255,.2)}
+
+        .main{margin-left:250px;flex:1;display:flex;flex-direction:column}
+        .topbar{height:58px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;position:sticky;top:0;z-index:100}
+        .topbar-title{font-size:.95rem;font-weight:600}
+        .t-user{display:flex;align-items:center;gap:.5rem;background:var(--bg);border-radius:999px;padding:.28rem .7rem .28rem .35rem;font-size:.8rem;font-weight:500}
+        .avatar{width:25px;height:25px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.67rem;font-weight:700}
+        .page{padding:1.75rem 2rem;flex:1}
+
+        .bc{display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:var(--muted);margin-bottom:1.4rem}
+        .bc a{color:var(--muted);text-decoration:none}.bc a:hover{color:var(--gold)}
+        .bc span{color:var(--text)}
+
+        .panel{background:var(--card);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--sh);margin-bottom:1.4rem;overflow:hidden}
+        .panel-hdr{padding:.9rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem}
+        .panel-hdr-icon{width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,var(--gold),var(--gold-d));display:flex;align-items:center;justify-content:center}
+        .panel-hdr-icon svg{width:15px;height:15px;color:#fff}
+        .panel-hdr-title{font-size:.9rem;font-weight:700}
+        .panel-body{padding:1.4rem 1.5rem}
+
+        .fg{display:grid;gap:1rem;margin-bottom:1rem}
+        .fg.c2{grid-template-columns:1fr 1fr}
+        .fg.c3{grid-template-columns:1fr 1fr 1fr}
+        .fg.c4{grid-template-columns:1fr 1fr 1fr 1fr}
+        .form-group{display:flex;flex-direction:column;gap:.3rem}
+        label{font-size:.82rem;font-weight:600;color:var(--text)}
+        .req{color:var(--gold-d);margin-left:2px}
+        .fc{border:1px solid var(--border);border-radius:8px;padding:.55rem .85rem;font-size:.88rem;width:100%;background:#fff;transition:border-color .2s,box-shadow .2s;color:var(--text)}
+        .fc:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(196,154,40,.15)}
+        .fc.error{border-color:var(--danger);box-shadow:0 0 0 3px rgba(192,57,43,.15)}
+        select.fc{cursor:pointer}
+        textarea.fc{resize:vertical;min-height:80px}
+        .err{color:var(--danger);font-size:.75rem;margin-top:.15rem}
+
+        .checks{display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap}
+        .chk-item{display:flex;align-items:center;gap:.45rem;cursor:pointer;font-size:.86rem}
+        .chk-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--gold);cursor:pointer}
+
+        .cargador-box{border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-top:.5rem}
+        .cargador-hdr{display:flex;align-items:center;justify-content:space-between;padding:.6rem .9rem;cursor:pointer;background:var(--bg);font-size:.84rem;font-weight:500;user-select:none}
+        .cargador-hdr:hover{background:#edf0f5}
+        .cargador-body{display:none;padding:.85rem .9rem;border-top:1px solid var(--border);background:#fff}
+        .cargador-body.open{display:block}
+
+        .perifericos-list{display:flex;flex-direction:column;gap:.85rem}
+        .periferico-row{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem}
+        .periferico-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
+        .periferico-tipo-label{font-size:.82rem;font-weight:600;color:var(--gold-d)}
+        .btn-remove{width:28px;height:28px;border:none;background:#FDEDEC;border-radius:6px;color:var(--danger);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .18s;flex-shrink:0}
+        .btn-remove:hover{background:#F1948A;color:#fff}
+        .btn-remove svg{width:13px;height:13px}
+        .periferico-fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem}
+
+        .add-group{display:flex;gap:.65rem;flex-wrap:wrap;margin-top:.85rem}
+        .btn-add-p{display:inline-flex;align-items:center;gap:.4rem;padding:.42rem .85rem;border-radius:8px;border:1.5px dashed var(--border);background:transparent;color:var(--muted);font-size:.8rem;cursor:pointer;transition:all .18s}
+        .btn-add-p:hover{border-color:var(--gold);color:var(--gold-d);background:#FEF9E7}
+        .btn-add-p svg{width:13px;height:13px}
+
+        .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;align-items:center;justify-content:center}
+        .modal-overlay.open{display:flex}
+        .modal{background:#fff;border-radius:var(--r);padding:1.5rem;width:440px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,.18)}
+        .modal h3{font-size:1rem;font-weight:700;margin-bottom:1.1rem}
+        .modal-footer{display:flex;gap:.65rem;justify-content:flex-end;margin-top:1.1rem;padding-top:1rem;border-top:1px solid var(--border)}
+
+        .form-actions{display:flex;gap:.85rem;justify-content:flex-end;padding-top:1rem;border-top:1px solid var(--border)}
+        .btn{display:inline-flex;align-items:center;gap:.4rem;padding:.55rem 1.3rem;border-radius:8px;font-size:.88rem;font-weight:600;border:none;cursor:pointer;text-decoration:none;transition:background .18s}
+        .btn-primary{background:var(--gold);color:#fff}.btn-primary:hover{background:var(--gold-d)}
+        .btn-secondary{background:var(--bg);color:var(--text);border:1px solid var(--border)}.btn-secondary:hover{background:#e4e7ed}
+        .btn svg{width:15px;height:15px}
+
+        .slabel{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gold-d);margin-bottom:.75rem;display:flex;align-items:center;gap:.4rem}
+        .slabel::after{content:'';flex:1;height:1px;background:var(--border)}
+
+        .add-custom-btn{display:inline-flex;align-items:center;gap:.3rem;font-size:.76rem;color:var(--gold-d);background:none;border:none;cursor:pointer;padding:.15rem 0;font-weight:500}
+        .add-custom-btn:hover{text-decoration:underline}
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="s-logo">
+        <img class="s-logo-img" src="/img/logo.png" alt="Mardique"/>
+        <div class="s-logo-txt">Sistemas<br>Inventario TI</div>
+    </div>
+    <div class="s-sect">Principal</div>
+    <a th:href="@{/}" class="s-link">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard
+    </a>
+    <div class="s-sect">Inventario</div>
+    <a th:href="@{/equipos}" class="s-link">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Equipos
+    </a>
+    <a th:href="@{/equipos/nuevo}" class="s-link active">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>Registrar equipo
+    </a>
+    <div class="s-bottom">SysInventory v1.0 · Mardique SP</div>
+</aside>
+
+<div class="main">
+    <div class="topbar">
+        <span class="topbar-title">Registrar nuevo equipo</span>
+        <div class="t-user"><div class="avatar">TI</div>Sistemas</div>
+    </div>
+    <div class="page">
+        <div class="bc">
+            <a th:href="@{/}">Dashboard</a>
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            <a th:href="@{/equipos}">Equipos</a>
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            <span>Nuevo registro</span>
+        </div>
+
+        <form th:action="@{/equipos/nuevo}" th:object="${equipoDTO}" method="post" id="frmEquipo">
+
+            <!-- Asignación -->
+            <div class="panel">
+                <div class="panel-hdr">
+                    <div class="panel-hdr-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+                    <span class="panel-hdr-title">Asignación</span>
+                </div>
+                <div class="panel-body">
+                    <div class="fg c3">
+                        <div class="form-group">
+                            <label>Área <span class="req">*</span></label>
+                            <select th:field="*{area}" th:class="${#fields.hasErrors('area')} ? 'fc error' : 'fc'" id="selArea">
+                                <option value="">Seleccionar área</option>
+                                <option th:each="a : ${areas}" th:value="${a}" th:text="${a}"></option>
+                            </select>
+                            <span th:if="${#fields.hasErrors('area')}" th:errors="*{area}" class="err"></span>
+                        </div>
+                        <div class="form-group">
+                            <label>Cargo <span class="req">*</span></label>
+                            <select th:field="*{cargo}" th:class="${#fields.hasErrors('cargo')} ? 'fc error' : 'fc'">
+                                <option value="">Seleccionar cargo</option>
+                                <option th:each="c : ${cargos}" th:value="${c}" th:text="${c}"></option>
+                            </select>
+                            <span th:if="${#fields.hasErrors('cargo')}" th:errors="*{cargo}" class="err"></span>
+                        </div>
+                        <div class="form-group">
+                            <label>Responsable <span class="req">*</span></label>
+                            <input type="text" th:field="*{responsable}" th:class="${#fields.hasErrors('responsable')} ? 'fc error' : 'fc'" placeholder="Nombre completo"/>
+                            <span th:if="${#fields.hasErrors('responsable')}" th:errors="*{responsable}" class="err"></span>
+                        </div>
+                    </div>
+                    <div class="fg c2" style="margin-bottom:0">
+                        <div class="form-group">
+                            <label>Fecha de entrega</label>
+                            <input type="date" th:field="*{fechaEntrega}" class="fc"/>
+                        </div>
+                        <div class="form-group">
+                            <label style="opacity:0">_</label>
+                            <div class="checks">
+                                <label class="chk-item">
+                                    <input type="checkbox" th:field="*{esPrestamo}"/> Entrega en calidad de préstamo
+                                </label>
+                                <label class="chk-item">
+                                    <input type="checkbox" th:field="*{incluyeCargador}" id="chkCargador" onchange="toggleCargadorBox(this)"/> Incluye cargador
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Cargador expandible -->
+                    <div id="cargadorBox" class="cargador-box" style="display:none;margin-top:.85rem">
+                        <div class="cargador-hdr" onclick="toggleCargadorDetail(this)">
+                            <span>Detalle del cargador</span>
+                            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                        </div>
+                        <div class="cargador-body open">
+                            <div class="fg c3" style="margin-bottom:0">
+                                <div class="form-group">
+                                    <label>Marca del cargador</label>
+                                    <input type="text" name="cargadorMarca" class="fc" placeholder="Ej: HP, Dell"/>
+                                </div>
+                                <div class="form-group">
+                                    <label>Modelo</label>
+                                    <input type="text" name="cargadorModelo" class="fc" placeholder="Ej: 65W USB-C"/>
+                                </div>
+                                <div class="form-group">
+                                    <label>Serial</label>
+                                    <input type="text" name="cargadorSerial" class="fc" placeholder="Número de serie"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dispositivo principal -->
+            <div class="panel">
+                <div class="panel-hdr">
+                    <div class="panel-hdr-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+                    <span class="panel-hdr-title">Dispositivo principal</span>
+                </div>
+                <div class="panel-body">
+                    <div class="slabel">Tipo y especificaciones</div>
+                    <div class="fg c4" style="margin-bottom:1rem">
+                        <div class="form-group">
+                            <label>Tipo</label>
+                            <select th:field="*{tipoDispositivo}" class="fc">
+                                <option value="">Seleccionar</option>
+                                <option value="Portátil">Portátil</option>
+                                <option value="Desktop">Desktop</option>
+                                <option value="Todo en uno">Todo en uno</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Marca</label>
+                            <select class="fc" id="selMarca" th:field="*{marca}" onchange="filtrarModelos(this.value)">
+                                <option value="">Seleccionar marca</option>
+                                <option th:each="entry : ${marcasModelos}" th:value="${entry.key}" th:text="${entry.key}"></option>
+                                <option value="__OTRA__">Agregar nueva marca...</option>
+                            </select>
+                            <button type="button" class="add-custom-btn" onclick="abrirModalMarca()">
+                                <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" width="11" height="11"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                Nueva marca
+                            </button>
+                        </div>
+                        <div class="form-group">
+                            <label>Modelo</label>
+                            <select class="fc" id="selModelo" th:field="*{modelo}">
+                                <option value="">Primero seleccione marca</option>
+                            </select>
+                            <input type="text" id="inpModeloCustom" class="fc" placeholder="Especifique modelo" style="display:none;margin-top:.4rem"/>
+                            <button type="button" class="add-custom-btn" id="btnNuevoModelo" style="display:none" onclick="abrirModalModelo()">
+                                <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" width="11" height="11"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                Nuevo modelo
+                            </button>
+                        </div>
+                        <div class="form-group">
+                            <label>Estado</label>
+                            <select th:field="*{estado}" class="fc">
+                                <option value="Activo">Activo</option>
+                                <option value="En mantenimiento">En mantenimiento</option>
+                                <option value="Dado de baja">Dado de baja</option>
+                                <option value="En bodega">En bodega</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="fg c4" style="margin-bottom:1rem">
+                        <div class="form-group">
+                            <label>Serial</label>
+                            <input type="text" th:field="*{serial}" th:class="${#fields.hasErrors('serial')} ? 'fc error' : 'fc'" placeholder="Número de serie"/>
+                            <span th:if="${#fields.hasErrors('serial')}" th:errors="*{serial}" class="err"></span>
+                        </div>
+                        <div class="form-group">
+                            <label>MAC</label>
+                            <input type="text" th:field="*{mac}" class="fc" placeholder="XX:XX:XX:XX:XX:XX"/>
+                        </div>
+                        <div class="form-group">
+                            <label>Estado físico</label>
+                            <select th:field="*{estadoFisico}" class="fc">
+                                <option value="">Seleccionar</option>
+                                <option value="Nuevo">Nuevo</option>
+                                <option value="Usado - Bueno">Usado - Bueno</option>
+                                <option value="Usado - Regular">Usado - Regular</option>
+                                <option value="Dañado">Dañado</option>
+                                <option value="Para reparar">Para reparar</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>RAM</label>
+                            <select class="fc" id="selRam" onchange="handleCustomSelect(this,'inpRamCustom','hidRam')">
+                                <option value="">Seleccionar</option>
+                                <option th:each="r : ${opcionesRam}" th:value="${r}" th:text="${r}"></option>
+                                <option value="__OTRA__">Otra...</option>
+                            </select>
+                            <input type="text" id="inpRamCustom" class="fc" placeholder="Especifique RAM" style="display:none;margin-top:.4rem"/>
+                            <input type="hidden" id="hidRam" th:field="*{ram}"/>
+                            <button type="button" class="add-custom-btn" onclick="abrirModalRam()">
+                                <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" width="11" height="11"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                Nueva opción RAM
+                            </button>
+                        </div>
+                    </div>
+                    <div class="fg c2" style="margin-bottom:1rem">
+                        <div class="form-group">
+                            <label>Disco</label>
+                            <select class="fc" id="selDisco" onchange="handleCustomSelect(this,'inpDiscoCustom','hidDisco')">
+                                <option value="">Seleccionar</option>
+                                <option th:each="d : ${opcionesDisco}" th:value="${d}" th:text="${d}"></option>
+                                <option value="__OTRA__">Otro...</option>
+                            </select>
+                            <input type="text" id="inpDiscoCustom" class="fc" placeholder="Especifique disco" style="display:none;margin-top:.4rem"/>
+                            <input type="hidden" id="hidDisco" th:field="*{disco}"/>
+                            <button type="button" class="add-custom-btn" onclick="abrirModalDisco()">
+                                <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" width="11" height="11"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                Nueva opción disco
+                            </button>
+                        </div>
+                        <div class="form-group">
+                            <label>Observaciones</label>
+                            <textarea th:field="*{observaciones}" class="fc" placeholder="Notas sobre el equipo, condición física, configuración especial..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Periféricos -->
+            <div class="panel">
+                <div class="panel-hdr">
+                    <div class="panel-hdr-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div>
+                    <span class="panel-hdr-title">Periféricos asociados</span>
+                </div>
+                <div class="panel-body">
+                    <div class="perifericos-list" id="perifericosList"></div>
+                    <div class="add-group">
+                        <button type="button" class="btn-add-p" onclick="addPeriferico('Monitor')">
+                            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Monitor
+                        </button>
+                        <button type="button" class="btn-add-p" onclick="addPeriferico('Teclado')">
+                            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Teclado
+                        </button>
+                        <button type="button" class="btn-add-p" onclick="addPeriferico('Mouse')">
+                            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Mouse
+                        </button>
+                        <button type="button" class="btn-add-p" onclick="addPeriferico('Mouse Pad')">
+                            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Mouse Pad
+                        </button>
+                        <button type="button" class="btn-add-p" onclick="addPeriferico('Auriculares')">
+                            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Auriculares
+                        </button>
+                        <button type="button" class="btn-add-p" onclick="addPeriferico('Hub USB')">
+                            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Hub / Extensor USB
+                        </button>
+                        <button type="button" class="btn-add-p" onclick="addPeriferico('UPS')">
+                            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>UPS
+                        </button>
+                        <button type="button" class="btn-add-p" onclick="addPeriferico('Otro')">
+                            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Otro dispositivo
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a th:href="@{/equipos}" class="btn btn-secondary">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                    Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/></svg>
+                    Guardar equipo
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modales (se mantienen igual) -->
+
+<script th:inline="javascript">
+    const MARCAS_MODELOS = /*[[${marcasModelos}]]*/ {};
+    let pCount = 0;
+
+    function filtrarModelos(marca){
+        const sel=document.getElementById('selModelo');
+        const customInp=document.getElementById('inpModeloCustom');
+        const btnNuevo=document.getElementById('btnNuevoModelo');
+        if(!marca||marca==='__OTRA__'){
+            document.getElementById('selMarca').value='';
+            abrirModalMarca();
+            return;
+        }
+        sel.style.display='block';
+        customInp.style.display='none';
+        customInp.name='';
+        btnNuevo.style.display='inline-flex';
+        const modelos=MARCAS_MODELOS[marca]||[];
+        sel.innerHTML='<option value="">Seleccionar modelo</option>';
+        modelos.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m;sel.appendChild(o);});
+        const oOtra=document.createElement('option');oOtra.value='__OTRO__';oOtra.textContent='Otro modelo...';sel.appendChild(oOtra);
+        sel.onchange=function(){
+            if(this.value==='__OTRO__'){this.style.display='none';customInp.style.display='block';customInp.name='modelo';sel.name='';}
+        };
+        sel.name='modelo';
+    }
+
+    function handleCustomSelect(sel,inputId,hidId){
+        const inp=document.getElementById(inputId);
+        if(sel.value==='__OTRA__'){sel.style.display='none';inp.style.display='block';inp.focus();}
+    }
+
+    function toggleCargadorBox(chk){
+        document.getElementById('cargadorBox').style.display=chk.checked?'block':'none';
+    }
+    function toggleCargadorDetail(hdr){
+        const b=hdr.nextElementSibling;
+        b.classList.toggle('open');
+    }
+
+    function addPeriferico(tipo){
+        const list=document.getElementById('perifericosList');
+        const i=pCount++;
+        const div=document.createElement('div');
+        div.className='periferico-row';
+        div.id='p_'+i;
+        div.innerHTML=`
+    <div class="periferico-header">
+      <span class="periferico-tipo-label">${tipo}</span>
+      <button type="button" class="btn-remove" onclick="document.getElementById('p_${i}').remove()">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="periferico-fields">
+      <div class="form-group">
+        <label>Tipo</label>
+        <select class="fc" name="perifericos[${i}].tipo">
+          <option value="Monitor"${tipo==='Monitor'?' selected':''}>Monitor</option>
+          <option value="Teclado"${tipo==='Teclado'?' selected':''}>Teclado</option>
+          <option value="Mouse"${tipo==='Mouse'?' selected':''}>Mouse</option>
+          <option value="Mouse Pad"${tipo==='Mouse Pad'?' selected':''}>Mouse Pad</option>
+          <option value="Auriculares"${tipo==='Auriculares'?' selected':''}>Auriculares</option>
+          <option value="Hub USB"${tipo==='Hub USB'?' selected':''}>Hub / Extensor USB</option>
+          <option value="UPS"${tipo==='UPS'?' selected':''}>UPS</option>
+          <option value="Otro"${tipo==='Otro'?' selected':''}>Otro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Marca</label>
+        <input type="text" class="fc" name="perifericos[${i}].marca" placeholder="Marca"/>
+      </div>
+      <div class="form-group">
+        <label>Modelo</label>
+        <input type="text" class="fc" name="perifericos[${i}].modelo" placeholder="Modelo"/>
+      </div>
+      <div class="form-group">
+        <label>Serial</label>
+        <input type="text" class="fc" name="perifericos[${i}].serial" placeholder="Número de serie"/>
+      </div>
+    </div>`;
+        list.appendChild(div);
+    }
+
+    function abrirModal(id){document.getElementById(id).classList.add('open');}
+    function cerrarModal(id){document.getElementById(id).classList.remove('open');}
+    function abrirModalMarca(){abrirModal('modalMarca');setTimeout(()=>document.getElementById('inpNuevaMarca').focus(),80);}
+    function abrirModalModelo(){abrirModal('modalModelo');setTimeout(()=>document.getElementById('inpNuevoModelo').focus(),80);}
+    function abrirModalRam(){abrirModal('modalRam');setTimeout(()=>document.getElementById('inpNuevaRam').focus(),80);}
+    function abrirModalDisco(){abrirModal('modalDisco');setTimeout(()=>document.getElementById('inpNuevoDisco').focus(),80);}
+
+    function guardarNuevaMarca(){
+        const val=document.getElementById('inpNuevaMarca').value.trim();
+        if(!val)return;
+        const sel=document.getElementById('selMarca');
+        const opt=document.createElement('option');
+        opt.value=val;opt.textContent=val;
+        sel.insertBefore(opt,sel.querySelector('[value="__OTRA__"]'));
+        sel.value=val;
+        MARCAS_MODELOS[val]=[];
+        filtrarModelos(val);
+        cerrarModal('modalMarca');
+        document.getElementById('inpNuevaMarca').value='';
+    }
+
+    function guardarNuevoModelo(){
+        const val=document.getElementById('inpNuevoModelo').value.trim();
+        if(!val)return;
+        const marcaActual=document.getElementById('selMarca').value;
+        if(marcaActual&&MARCAS_MODELOS[marcaActual]){
+            MARCAS_MODELOS[marcaActual].push(val);
+            filtrarModelos(marcaActual);
+            document.getElementById('selModelo').value=val;
+        }
+        cerrarModal('modalModelo');
+        document.getElementById('inpNuevoModelo').value='';
+    }
+
+    function guardarNuevaRam(){
+        const val=document.getElementById('inpNuevaRam').value.trim();
+        if(!val)return;
+        const sel=document.getElementById('selRam');
+        const opt=document.createElement('option');
+        opt.value=val;opt.textContent=val;
+        sel.insertBefore(opt,sel.querySelector('[value="__OTRA__"]'));
+        sel.value=val;
+        cerrarModal('modalRam');
+        document.getElementById('inpNuevaRam').value='';
+    }
+
+    function guardarNuevoDisco(){
+        const val=document.getElementById('inpNuevoDisco').value.trim();
+        if(!val)return;
+        const sel=document.getElementById('selDisco');
+        const opt=document.createElement('option');
+        opt.value=val;opt.textContent=val;
+        sel.insertBefore(opt,sel.querySelector('[value="__OTRA__"]'));
+        sel.value=val;
+        cerrarModal('modalDisco');
+        document.getElementById('inpNuevoDisco').value='';
+    }
+
+    document.querySelectorAll('.modal-overlay').forEach(o=>{
+        o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});
+    });
+
+    document.getElementById('frmEquipo').addEventListener('submit',function(){
+        const ramSel=document.getElementById('selRam');
+        const ramInp=document.getElementById('inpRamCustom');
+        const hidRam=document.getElementById('hidRam');
+        hidRam.value=(ramInp.style.display!=='none')?ramInp.value:ramSel.value;
+        const discoSel=document.getElementById('selDisco');
+        const discoInp=document.getElementById('inpDiscoCustom');
+        const hidDisco=document.getElementById('hidDisco');
+        hidDisco.value=(discoInp.style.display!=='none')?discoInp.value:discoSel.value;
+    });
+
+    // Enfocar el primer campo con error si existe
+    document.addEventListener('DOMContentLoaded', function() {
+        var firstError = document.querySelector('.fc.error');
+        if (firstError) {
+            firstError.focus();
+        }
+    });
+</script>
+</body>
+</html>
