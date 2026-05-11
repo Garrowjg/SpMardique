@@ -23,34 +23,32 @@ public class EquipoWebController {
 
     public EquipoWebController(EquipoService equipoService) {
         this.equipoService = equipoService;
-    }
-    @GetMapping("/redirect/{codigo}")
+    }@GetMapping("/redirect/{codigo}")
     public String redirigirAExcel(@PathVariable String codigo) {
 
+        // Buscar el equipo por código
         Equipo equipo = equipoService.buscarPorCodigo(codigo);
 
-        if (equipo == null) {
-            return "redirect:/equipos";
+        // Si no existe el equipo o no tiene serial, redirigir a la ficha del equipo
+        if (equipo == null || equipo.getSerial() == null || equipo.getSerial().isBlank()) {
+            return "redirect:/equipo/" + codigo;
         }
 
-        // EL NOMBRE DE LA HOJA ES EL SERIAL
-        String serial = equipo.getSerial()
-                .trim()
-                .replace("'", "");
+        String serial = equipo.getSerial().trim();
 
-        // LINK REAL DEL EXCEL
-        String baseUrl =
-                "https://spmardiquesa.sharepoint.com/:x:/r/sites/TI/_layouts/15/Doc.aspx?sourcedoc=%7BA82F2272-AA70-48D1-AB55-51FEF73EC1AA%7D&file=FT-GMT-SPM-027%20Hoja%20de%20vida%20equipos%20de%20computo%202026.xlsx&action=default";
+        // URL base del archivo en SharePoint
+        String fileUrl = "https://spmardiquesa.sharepoint.com/:x:/r/sites/TI/_layouts/15/Doc.aspx"
+                + "?sourcedoc=%7BA82F2272-AA70-48D1-AB55-51FEF73EC1AA%7D"
+                + "&file=FT-GMT-SPM-027%20Hoja%20de%20vida%20equipos%20de%20computo%202026.xlsx"
+                + "&action=default";
 
-        // FORMATO QUE SHAREPOINT SÍ RESPETA
-        String activeCell =
-                "%27" + serial + "%27!A1";
+        // wdsheetname permite ir a la hoja por nombre (funciona tanto en PC como en móvil)
+        // mobileredirect=true redirige a la aplicación de Office en dispositivos móviles si está instalada
+        String finalUrl = fileUrl
+                + "&wdsheetname=" + java.net.URLEncoder.encode(serial, java.nio.charset.StandardCharsets.UTF_8)
+                + "&mobileredirect=true";
 
-        String finalUrl =
-                baseUrl
-                        + "&ActiveCell=" + activeCell
-                        + "&mobileredirect=false";
-
+        // Redirigir a la URL generada
         return "redirect:" + finalUrl;
     }
     // ── Dashboard ─────────────────────────────────────────────────────────
