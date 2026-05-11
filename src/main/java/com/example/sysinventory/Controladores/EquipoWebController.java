@@ -3,6 +3,7 @@ package com.example.sysinventory.Controladores;
 import com.example.sysinventory.DTOs.*;
 import com.example.sysinventory.Modelos.Equipo;
 import com.example.sysinventory.Servicios.EquipoService;
+import com.example.sysinventory.Servicios.GraphService;
 import com.example.sysinventory.Utilidades.CodigoGenerador;
 import com.google.zxing.WriterException;
 import jakarta.validation.Valid;
@@ -20,37 +21,53 @@ import java.util.stream.Collectors;
 public class EquipoWebController {
 
     private final EquipoService equipoService;
+    private final GraphService graphService;
 
-    public EquipoWebController(EquipoService equipoService) {
+    // Constructor único que inyecta ambos servicios
+    public EquipoWebController(EquipoService equipoService, GraphService graphService) {
         this.equipoService = equipoService;
-    }@GetMapping("/redirect/{codigo}")
+        this.graphService = graphService;
+    }
+
+    // ── Redirección QR → SharePoint (con parámetro wdsheetname) ────────────
+    @GetMapping("/redirect/{codigo}")
     public String redirigirAExcel(@PathVariable String codigo) {
-
-        // Buscar el equipo por código
         Equipo equipo = equipoService.buscarPorCodigo(codigo);
-
-        // Si no existe el equipo o no tiene serial, redirigir a la ficha del equipo
         if (equipo == null || equipo.getSerial() == null || equipo.getSerial().isBlank()) {
             return "redirect:/equipo/" + codigo;
         }
-
         String serial = equipo.getSerial().trim();
 
-        // URL base del archivo en SharePoint
         String fileUrl = "https://spmardiquesa.sharepoint.com/:x:/r/sites/TI/_layouts/15/Doc.aspx"
                 + "?sourcedoc=%7BA82F2272-AA70-48D1-AB55-51FEF73EC1AA%7D"
                 + "&file=FT-GMT-SPM-027%20Hoja%20de%20vida%20equipos%20de%20computo%202026.xlsx"
                 + "&action=default";
 
-        // wdsheetname permite ir a la hoja por nombre (funciona tanto en PC como en móvil)
-        // mobileredirect=true redirige a la aplicación de Office en dispositivos móviles si está instalada
         String finalUrl = fileUrl
                 + "&wdsheetname=" + java.net.URLEncoder.encode(serial, java.nio.charset.StandardCharsets.UTF_8)
                 + "&mobileredirect=true";
 
-        // Redirigir a la URL generada
         return "redirect:" + finalUrl;
     }
+
+    // ── Hoja de vida del equipo (lectura desde Excel con Graph API) ─────────
+    @GetMapping("/equipo/{codigo}/hoja")
+    public String hojaVida(@PathVariable String codigo, Model model) {
+        Equipo equipo = equipoService.buscarPorCodigo(codigo);
+        if (equipo == null) return "redirect:/equipos";
+
+        Map<String, String> datosExcel = new LinkedHashMap<>();
+        if (equipo.getSerial() != null && !equipo.getSerial().isBlank()) {
+            datosExcel = graphService.leerHojaEquipo(equipo.getSerial().trim());
+        } else {
+            datosExcel.put("error", "Este equipo no tiene serial registrado.");
+        }
+
+        model.addAttribute("equipo", equipo);
+        model.addAttribute("datosExcel", datosExcel);
+        return "equipos/hoja";
+    }
+
     // ── Dashboard ─────────────────────────────────────────────────────────
     @GetMapping("/")
     public String dashboard(Model model) {

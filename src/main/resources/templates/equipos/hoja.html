@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${equipo.codigo} + ' - Hoja de Vida'">Hoja de Vida</title>
+    <style>
+        :root{
+            --gold:#C49A28; --navy:#0D1B2A; --blue:#2E86C1;
+            --bg:#F2F4F7; --card:#fff; --text:#1C2833; --muted:#6C7A89;
+            --border:#DDE1E7;
+        }
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);padding:2rem}
+        .panel{background:var(--card);border-radius:12px;border:1px solid var(--border);box-shadow:0 2px 14px rgba(0,0,0,.07);overflow:hidden;max-width:900px;margin:0 auto}
+        .panel-hdr{padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem;justify-content:space-between}
+        .panel-hdr-title{font-size:1rem;font-weight:700;display:flex;align-items:center;gap:.5rem}
+        .panel-body{padding:1.5rem}
+        table{width:100%;border-collapse:collapse}
+        table th, table td{padding:.65rem .8rem;border-bottom:1px solid var(--border);text-align:left}
+        table th{background:var(--bg);color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-size:.75rem}
+        .code-tag{font-family:monospace;font-size:1.3rem;font-weight:700;color:var(--blue)}
+        .error{color:#E74C3C;font-weight:500}
+        .btn{display:inline-flex;align-items:center;gap:.4rem;padding:.45rem 1rem;border-radius:8px;font-size:.85rem;font-weight:600;text-decoration:none;background:var(--gold);color:#fff}
+    </style>
+</head>
+<body>
+<div class="panel">
+    <div class="panel-hdr">
+            <span class="panel-hdr-title">
+                <span class="code-tag" th:text="${equipo.codigo}"></span>
+                <span style="color:var(--muted)">— Hoja de Vida</span>
+            </span>
+        <a th:href="@{/equipo/{c}(c=${equipo.codigo})}" class="btn">Volver a ficha</a>
+    </div>
+    <div class="panel-body">
+        <th:block th:if="${datosExcel.containsKey('error')}">
+            <p class="error" th:text="${datosExcel['error']}"></p>
+            <p style="margin-top:1rem;color:var(--muted);font-size:.85rem">
+                Asegúrate de que el serial <strong th:text="${equipo.serial}"></strong> coincida con el nombre de una hoja en el Excel.
+            </p>
+            <p style="margin-top:.5rem;font-size:.85rem">
+                <a th:href="@{/auth/login}">Inicia sesión</a> si aún no lo has hecho.
+            </p>
+        </th:block>
+
+        <th:block th:unless="${datosExcel.containsKey('error')}">
+            <table>
+                <thead><tr><th>Campo</th><th>Valor</th></tr></thead>
+                <tbody>
+                <tr th:each="entry : ${datosExcel}">
+                    <td th:text="${entry.key}"></td>
+                    <td th:text="${entry.value}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </th:block>
+    </div>
+</div>
+</body>
+</html>
