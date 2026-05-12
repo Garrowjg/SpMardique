@@ -1,5 +1,6 @@
 package com.example.sysinventory.Servicios;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.*;
@@ -9,9 +10,14 @@ import java.util.Map;
 @Service
 public class TokenService {
 
-    private final String clientId = "8a2c149d-c019-4287-b370-f545aaa60f2a";
-    private final String clientSecret ="piS8Q~C8Xcdin3mmj3kH~DdL5FFQcaPElwsqAawp";
-    private final String tenantId = "f33bed9f-22bd-4350-b7da-66bd88fc6458";
+    @Value("${azure.client-id}")
+    private String clientId;
+
+    @Value("${azure.client-secret}")
+    private String clientSecret;
+
+    @Value("${azure.tenant-id}")
+    private String tenantId;
 
     private String accessToken;
     private String refreshToken;
