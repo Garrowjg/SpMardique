@@ -7,6 +7,7 @@ import com.example.sysinventory.Servicios.GraphService;
 import com.example.sysinventory.Servicios.TokenService;
 import com.example.sysinventory.Utilidades.CodigoGenerador;
 import com.google.zxing.WriterException;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -44,22 +45,34 @@ public class EquipoWebController {
 
     // ── Hoja de vida del equipo (lectura desde Excel con Graph API) ─────────
     @GetMapping("/equipo/{codigo}/hoja")
-    public String hojaVida(@PathVariable String codigo, Model model) {
-        // Verificar que haya token (alguien autorizado inició sesión)
-        if (tokenService.getAccessToken() == null) {
-            return "redirect:/auth/login";
+    public String hojaVida(@PathVariable String codigo,
+                           HttpSession session,
+                           Model model) {
+        // 1. Obtener token de la sesión (primero del TokenService, luego del HttpSession)
+        String token = tokenService.getAccessToken();
+        if (token == null) {
+            token = (String) session.getAttribute("accessToken");
+            if (token == null) {
+                return "redirect:/auth/login";
+            }
+            tokenService.setAccessToken(token); // sincronizar
         }
 
+        // 2. Buscar equipo por código
         Equipo equipo = equipoService.buscarPorCodigo(codigo);
-        if (equipo == null) return "redirect:/equipos";
+        if (equipo == null) {
+            return "redirect:/equipos";
+        }
 
+        // 3. Leer datos del Excel usando Graph API (pasamos el token)
         Map<String, String> datosExcel = new LinkedHashMap<>();
         if (equipo.getSerial() != null && !equipo.getSerial().isBlank()) {
-            datosExcel = graphService.leerHojaEquipo(equipo.getSerial().trim());
+            datosExcel = graphService.leerHojaEquipo(equipo.getSerial().trim(), token);
         } else {
             datosExcel.put("error", "Este equipo no tiene serial registrado.");
         }
 
+        // 4. Pasar datos a la vista
         model.addAttribute("equipo", equipo);
         model.addAttribute("datosExcel", datosExcel);
         return "equipos/hoja";

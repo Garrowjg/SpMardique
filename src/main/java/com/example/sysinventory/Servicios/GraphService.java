@@ -1,10 +1,9 @@
 package com.example.sysinventory.Servicios;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpMethod;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.http.*;
 
 import java.net.URI;
 import java.util.*;
@@ -18,44 +17,38 @@ public class GraphService {
     @Value("${azure.file-id}")
     private String fileId;
 
-    private final TokenService tokenService;
-
-    public GraphService(TokenService tokenService) {
-        this.tokenService = tokenService;
-    }
-
-    public Map<String, String> leerHojaEquipo(String serial) {
+    public Map<String, String> leerHojaEquipo(String nombreHoja, String accessToken) {
         Map<String, String> datos = new LinkedHashMap<>();
+        if (accessToken == null || accessToken.isBlank()) {
+            datos.put("error", "No hay token de acceso. Inicia sesión en /auth/login");
+            return datos;
+        }
         try {
-            String token = tokenService.getAccessToken();
-            if (token == null) {
-                datos.put("error", "No hay token. Inicia sesión en /auth/login");
-                return datos;
-            }
-
             RestTemplate rest = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(token);
+            headers.setBearerAuth(accessToken);
             headers.setAccept(List.of(MediaType.APPLICATION_JSON));
             HttpEntity<Void> entity = new HttpEntity<>(headers);
 
             String url = "https://graph.microsoft.com/v1.0/sites/" + sharepointSite
                     + "/drive/items/" + fileId
-                    + "/workbook/worksheets('" + serial + "')/range(address='A1:Z40')/usedRange";
+                    + "/workbook/worksheets('" + nombreHoja + "')/usedRange";
 
             ResponseEntity<Map> response = rest.exchange(
                     URI.create(url), HttpMethod.GET, entity, Map.class);
 
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
                 List<List<Object>> values = (List<List<Object>>) response.getBody().get("values");
-                if (values != null) {
+                if (values != null && !values.isEmpty()) {
                     datos = mapearFilasExcel(values);
+                } else {
+                    datos.put("error", "La hoja '" + nombreHoja + "' está vacía.");
                 }
             } else {
-                datos.put("error", "No se encontraron datos en la hoja '" + serial + "'");
+                datos.put("error", "No se encontraron datos en la hoja '" + nombreHoja + "'");
             }
         } catch (Exception e) {
-            datos.put("error", "No se pudo leer la hoja: " + e.getMessage());
+            datos.put("error", "Error al leer la hoja: " + e.getMessage());
         }
         return datos;
     }

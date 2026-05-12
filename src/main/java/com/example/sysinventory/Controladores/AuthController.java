@@ -1,43 +1,55 @@
 package com.example.sysinventory.Controladores;
 
 import com.example.sysinventory.Servicios.TokenService;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.view.RedirectView;
-
-import java.util.UUID;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class AuthController {
 
+    private final OAuth2AuthorizedClientService clientService;
     private final TokenService tokenService;
 
-    private final String clientId = "8a2c149d-c019-4287-b370-f545aaa60f2a";
-    private final String redirectUri = "https://spmardique.onrender.com/auth/callback";
-    private final String tenantId = "f33bed9f-22bd-4350-b7da-66bd88fc6458";
-    private final String scope = "Files.Read Files.Read.All Sites.Read.All offline_access";
-    private final String state = UUID.randomUUID().toString();
-
-    public AuthController(TokenService tokenService) {
+    public AuthController(OAuth2AuthorizedClientService clientService,
+                          TokenService tokenService) {
+        this.clientService = clientService;
         this.tokenService = tokenService;
     }
 
     @GetMapping("/auth/login")
-    public RedirectView login() {
-        String authUrl = "https://login.microsoftonline.com/" + tenantId
-                + "/oauth2/v2.0/authorize"
-                + "?client_id=" + clientId
-                + "&response_type=code"
-                + "&redirect_uri=" + redirectUri
-                + "&scope=" + scope.replace(" ", "%20")
-                + "&state=" + state;
-        return new RedirectView(authUrl);
+    public String login() {
+        return "redirect:/oauth2/authorization/azure";
     }
 
-    @GetMapping("/auth/callback")
-    public String callback(@RequestParam("code") String code, @RequestParam("state") String state) {
-        tokenService.fetchTokens(code, redirectUri);
+    @GetMapping("/auth/success")
+    public String success(@AuthenticationPrincipal OAuth2AuthenticationToken auth,
+                          HttpSession session,
+                          RedirectAttributes redirectAttrs) {
+        if (auth == null) {
+            redirectAttrs.addFlashAttribute("error", "No se pudo autenticar. Intente de nuevo.");
+            return "redirect:/auth/login";
+        }
+
+        OAuth2AuthorizedClient client = clientService.loadAuthorizedClient(
+                auth.getAuthorizedClientRegistrationId(),
+                auth.getName()
+        );
+
+        if (client == null || client.getAccessToken() == null) {
+            redirectAttrs.addFlashAttribute("error", "No se obtuvo token de acceso.");
+            return "redirect:/auth/login";
+        }
+
+        String accessToken = client.getAccessToken().getTokenValue();
+        tokenService.setAccessToken(accessToken);
+        session.setAttribute("accessToken", accessToken);
+
         return "redirect:/";
     }
 }
