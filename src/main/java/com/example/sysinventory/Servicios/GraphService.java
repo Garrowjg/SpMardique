@@ -1,6 +1,5 @@
 package com.example.sysinventory.Servicios;
 
-import com.microsoft.aad.msal4j.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
@@ -13,71 +12,33 @@ import java.util.*;
 @Service
 public class GraphService {
 
-    @Value("${azure.client-id}")
-    private String clientId;
-
-    @Value("${azure.tenant-id}")
-    private String tenantId;
-
-    @Value("${azure.client-secret}")
-    private String clientSecret;
-
-    @Value("${azure.username}")
-    private String username;
-
-    @Value("${azure.password}")
-    private String password;
+    @Value("${azure.sharepoint-site}")
+    private String sharepointSite;
 
     @Value("${azure.file-id}")
     private String fileId;
 
-    // Añade esta línea para inyectar el sitio de SharePoint
-    @Value("${azure.sharepoint-site}")
-    private String sharepointSite;
+    private final TokenService tokenService;
 
-    private String cachedToken = null;
-    private long tokenExpiry = 0;
-
-    // Obtener token con usuario/contraseña (flujo ROPC)
-    private String obtenerToken() throws Exception {
-        if (cachedToken != null && System.currentTimeMillis() < tokenExpiry) {
-            return cachedToken;
-        }
-
-        PublicClientApplication app = PublicClientApplication.builder(clientId)
-                .authority("https://login.microsoftonline.com/" + tenantId)
-                .build();
-
-        Set<String> scopes = new HashSet<>();
-        scopes.add("https://graph.microsoft.com/Files.Read");
-        scopes.add("https://graph.microsoft.com/Files.Read.All");
-        scopes.add("https://graph.microsoft.com/Sites.Read.All");
-        scopes.add("offline_access");
-
-        UserNamePasswordParameters params = UserNamePasswordParameters.builder(
-                scopes, username, password.toCharArray()).build();
-
-        IAuthenticationResult result = app.acquireToken(params).get();
-        cachedToken = result.accessToken();
-        // Token válido por 55 minutos
-        tokenExpiry = System.currentTimeMillis() + (55 * 60 * 1000);
-
-        return cachedToken;
+    public GraphService(TokenService tokenService) {
+        this.tokenService = tokenService;
     }
 
-    // Leer todos los datos de una hoja por nombre (serial del equipo)
     public Map<String, String> leerHojaEquipo(String serial) {
         Map<String, String> datos = new LinkedHashMap<>();
         try {
-            String token = obtenerToken();
-            RestTemplate rest = new RestTemplate();
+            String token = tokenService.getAccessToken();
+            if (token == null) {
+                datos.put("error", "No hay token. Inicia sesión en /auth/login");
+                return datos;
+            }
 
+            RestTemplate rest = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(token);
             headers.setAccept(List.of(MediaType.APPLICATION_JSON));
             HttpEntity<Void> entity = new HttpEntity<>(headers);
 
-            // Leer rango de la hoja usando el sitio de SharePoint
             String url = "https://graph.microsoft.com/v1.0/sites/" + sharepointSite
                     + "/drive/items/" + fileId
                     + "/workbook/worksheets('" + serial + "')/range(address='A1:Z40')/usedRange";
@@ -90,6 +51,8 @@ public class GraphService {
                 if (values != null) {
                     datos = mapearFilasExcel(values);
                 }
+            } else {
+                datos.put("error", "No se encontraron datos en la hoja '" + serial + "'");
             }
         } catch (Exception e) {
             datos.put("error", "No se pudo leer la hoja: " + e.getMessage());
@@ -97,7 +60,6 @@ public class GraphService {
         return datos;
     }
 
-    // Mapear las filas del Excel a un mapa legible
     private Map<String, String> mapearFilasExcel(List<List<Object>> rows) {
         Map<String, String> datos = new LinkedHashMap<>();
         for (List<Object> row : rows) {

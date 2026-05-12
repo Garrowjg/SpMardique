@@ -2,17 +2,37 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <title th:text="${equipo.codigo} + ' - Hoja de Vida'">Hoja de Vida</title>
     <style>
         :root{
-            --gold:#C49A28; --navy:#0D1B2A; --blue:#2E86C1;
+            --gold:#C49A28; --gold-d:#9A7A1A;
+            --navy:#0D1B2A; --blue:#2E86C1;
             --bg:#F2F4F7; --card:#fff; --text:#1C2833; --muted:#6C7A89;
-            --border:#DDE1E7;
+            --border:#DDE1E7; --r:10px; --sh:0 2px 14px rgba(0,0,0,.07);
         }
         *{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);padding:2rem}
-        .panel{background:var(--card);border-radius:12px;border:1px solid var(--border);box-shadow:0 2px 14px rgba(0,0,0,.07);overflow:hidden;max-width:900px;margin:0 auto}
-        .panel-hdr{padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem;justify-content:space-between}
+        body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh}
+
+        .sidebar{width:250px;background:var(--navy);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:200}
+        .s-logo{padding:1.3rem 1.2rem;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:.75rem}
+        .s-logo-img{height:34px;object-fit:contain;filter:brightness(0) invert(1)}
+        .s-logo-txt{color:rgba(255,255,255,.55);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;line-height:1.4}
+        .s-sect{padding:.8rem 1.2rem .2rem;font-size:.6rem;color:rgba(255,255,255,.28);text-transform:uppercase;letter-spacing:.1em;font-weight:700}
+        .s-link{display:flex;align-items:center;gap:.7rem;padding:.65rem 1.2rem;color:rgba(255,255,255,.6);text-decoration:none;font-size:.84rem;border-left:3px solid transparent;transition:all .18s}
+        .s-link:hover,.s-link.active{color:#fff;background:rgba(255,255,255,.06);border-left-color:var(--gold)}
+        .s-link svg{width:15px;height:15px;flex-shrink:0}
+        .s-bottom{margin-top:auto;padding:1rem 1.2rem;border-top:1px solid rgba(255,255,255,.06);font-size:.65rem;color:rgba(255,255,255,.2)}
+
+        .main{margin-left:250px;flex:1;display:flex;flex-direction:column}
+        .topbar{height:58px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;position:sticky;top:0;z-index:100}
+        .topbar-title{font-size:.95rem;font-weight:600}
+        .t-user{display:flex;align-items:center;gap:.5rem;background:var(--bg);border-radius:999px;padding:.28rem .7rem .28rem .35rem;font-size:.8rem;font-weight:500}
+        .avatar{width:25px;height:25px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.67rem;font-weight:700}
+        .page{padding:1.75rem 2rem;flex:1}
+
+        .panel{background:var(--card);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--sh);overflow:hidden;max-width:900px;margin:0 auto}
+        .panel-hdr{padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem;justify-content:space-between;flex-wrap:wrap}
         .panel-hdr-title{font-size:1rem;font-weight:700;display:flex;align-items:center;gap:.5rem}
         .panel-body{padding:1.5rem}
         table{width:100%;border-collapse:collapse}
@@ -21,39 +41,81 @@
         .code-tag{font-family:monospace;font-size:1.3rem;font-weight:700;color:var(--blue)}
         .error{color:#E74C3C;font-weight:500}
         .btn{display:inline-flex;align-items:center;gap:.4rem;padding:.45rem 1rem;border-radius:8px;font-size:.85rem;font-weight:600;text-decoration:none;background:var(--gold);color:#fff}
+        .btn:hover{background:var(--gold-d)}
+
+        .menu-toggle{display:none;position:fixed;top:10px;left:10px;z-index:300;background:var(--navy);color:white;border:none;padding:10px 12px;font-size:20px;border-radius:6px;cursor:pointer}
+        @media (max-width: 768px) {
+            .sidebar{transform:translateX(-100%);transition:transform 0.3s ease;width:250px;position:fixed;top:0;left:0;height:100vh;z-index:250}
+            .sidebar.open{transform:translateX(0)}
+            .main{margin-left:0}
+            .menu-toggle{display:block}
+            .page{padding:1.5rem 1rem}
+            .topbar{padding:0 1rem}
+            .panel-hdr{flex-direction:column;align-items:flex-start}
+            .code-tag{font-size:1.1rem}
+            table{display:block;overflow-x:auto;white-space:nowrap}
+        }
     </style>
 </head>
 <body>
-<div class="panel">
-    <div class="panel-hdr">
-            <span class="panel-hdr-title">
-                <span class="code-tag" th:text="${equipo.codigo}"></span>
-                <span style="color:var(--muted)">— Hoja de Vida</span>
-            </span>
-        <a th:href="@{/equipo/{c}(c=${equipo.codigo})}" class="btn">Volver a ficha</a>
+<button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+<aside class="sidebar">
+    <div class="s-logo">
+        <img class="s-logo-img" src="/img/logo.png" alt="Mardique"/>
+        <div class="s-logo-txt">Sistemas<br>Inventario TI</div>
     </div>
-    <div class="panel-body">
-        <th:block th:if="${datosExcel.containsKey('error')}">
-            <p class="error" th:text="${datosExcel['error']}"></p>
-            <p style="margin-top:1rem;color:var(--muted);font-size:.85rem">
-                Asegúrate de que el serial <strong th:text="${equipo.serial}"></strong> coincida con el nombre de una hoja en el Excel.
-            </p>
-            <p style="margin-top:.5rem;font-size:.85rem">
-                <a th:href="@{/auth/login}">Inicia sesión</a> si aún no lo has hecho.
-            </p>
-        </th:block>
+    <div class="s-sect">Principal</div>
+    <a th:href="@{/}" class="s-link">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard
+    </a>
+    <div class="s-sect">Inventario</div>
+    <a th:href="@{/equipos}" class="s-link active">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Equipos
+    </a>
+    <a th:href="@{/equipos/nuevo}" class="s-link">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>Registrar equipo
+    </a>
+    <div class="s-bottom">SysInventory v1.0 · Mardique SP</div>
+</aside>
 
-        <th:block th:unless="${datosExcel.containsKey('error')}">
-            <table>
-                <thead><tr><th>Campo</th><th>Valor</th></tr></thead>
-                <tbody>
-                <tr th:each="entry : ${datosExcel}">
-                    <td th:text="${entry.key}"></td>
-                    <td th:text="${entry.value}"></td>
-                </tr>
-                </tbody>
-            </table>
-        </th:block>
+<div class="main">
+    <div class="topbar">
+        <span class="topbar-title">Hoja de vida del equipo</span>
+        <div class="t-user"><div class="avatar">TI</div>Sistemas</div>
+    </div>
+    <div class="page">
+        <div class="panel">
+            <div class="panel-hdr">
+                <span class="panel-hdr-title">
+                    <span class="code-tag" th:text="${equipo.codigo}"></span>
+                    <span style="color:var(--muted);font-size:.9rem;">— Hoja de Vida</span>
+                </span>
+                <a th:href="@{/equipo/{c}(c=${equipo.codigo})}" class="btn">Volver a ficha</a>
+            </div>
+            <div class="panel-body">
+                <th:block th:if="${datosExcel.containsKey('error')}">
+                    <p class="error" th:text="${datosExcel['error']}"></p>
+                    <p style="margin-top:1rem;color:var(--muted);font-size:.85rem">
+                        Asegúrate de que el serial <strong th:text="${equipo.serial}"></strong> coincida con el nombre de una hoja en el Excel.
+                    </p>
+                    <p style="margin-top:.5rem;font-size:.85rem">
+                        <a th:href="@{/auth/login}">Inicia sesión</a> si aún no lo has hecho.
+                    </p>
+                </th:block>
+
+                <th:block th:unless="${datosExcel.containsKey('error')}">
+                    <table>
+                        <thead><tr><th>Campo</th><th>Valor</th></tr></thead>
+                        <tbody>
+                        <tr th:each="entry : ${datosExcel}">
+                            <td th:text="${entry.key}"></td>
+                            <td th:text="${entry.value}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </th:block>
+            </div>
+        </div>
     </div>
 </div>
 </body>

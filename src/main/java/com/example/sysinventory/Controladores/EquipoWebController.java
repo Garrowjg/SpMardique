@@ -4,6 +4,7 @@ import com.example.sysinventory.DTOs.*;
 import com.example.sysinventory.Modelos.Equipo;
 import com.example.sysinventory.Servicios.EquipoService;
 import com.example.sysinventory.Servicios.GraphService;
+import com.example.sysinventory.Servicios.TokenService;
 import com.example.sysinventory.Utilidades.CodigoGenerador;
 import com.google.zxing.WriterException;
 import jakarta.validation.Valid;
@@ -22,37 +23,33 @@ public class EquipoWebController {
 
     private final EquipoService equipoService;
     private final GraphService graphService;
+    private final TokenService tokenService;
 
-    // Constructor único que inyecta ambos servicios
-    public EquipoWebController(EquipoService equipoService, GraphService graphService) {
+    // Constructor único que inyecta los tres servicios
+    public EquipoWebController(EquipoService equipoService,
+                               GraphService graphService,
+                               TokenService tokenService) {
         this.equipoService = equipoService;
         this.graphService = graphService;
+        this.tokenService = tokenService;
     }
 
-    // ── Redirección QR → SharePoint (con parámetro wdsheetname) ────────────
+    // ── Redirección QR → Hoja de vida (Graph API) ─────────────────────────
     @GetMapping("/redirect/{codigo}")
     public String redirigirAExcel(@PathVariable String codigo) {
         Equipo equipo = equipoService.buscarPorCodigo(codigo);
-        if (equipo == null || equipo.getSerial() == null || equipo.getSerial().isBlank()) {
-            return "redirect:/equipo/" + codigo;
-        }
-        String serial = equipo.getSerial().trim();
-
-        String fileUrl = "https://spmardiquesa.sharepoint.com/:x:/r/sites/TI/_layouts/15/Doc.aspx"
-                + "?sourcedoc=%7BA82F2272-AA70-48D1-AB55-51FEF73EC1AA%7D"
-                + "&file=FT-GMT-SPM-027%20Hoja%20de%20vida%20equipos%20de%20computo%202026.xlsx"
-                + "&action=default";
-
-        String finalUrl = fileUrl
-                + "&wdsheetname=" + java.net.URLEncoder.encode(serial, java.nio.charset.StandardCharsets.UTF_8)
-                + "&mobileredirect=true";
-
-        return "redirect:" + finalUrl;
+        if (equipo == null) return "redirect:/equipos";
+        return "redirect:/equipo/" + codigo + "/hoja";
     }
 
     // ── Hoja de vida del equipo (lectura desde Excel con Graph API) ─────────
     @GetMapping("/equipo/{codigo}/hoja")
     public String hojaVida(@PathVariable String codigo, Model model) {
+        // Verificar que haya token (alguien autorizado inició sesión)
+        if (tokenService.getAccessToken() == null) {
+            return "redirect:/auth/login";
+        }
+
         Equipo equipo = equipoService.buscarPorCodigo(codigo);
         if (equipo == null) return "redirect:/equipos";
 
@@ -208,9 +205,19 @@ public class EquipoWebController {
             model.addAttribute("opcionesDisco", CodigoGenerador.getOpcionesDisco());
             return "equipos/formulario";
         }
-        Equipo creado = equipoService.crear(dto);
-        redirectAttrs.addFlashAttribute("mensaje", "Equipo " + creado.getCodigo() + " registrado correctamente");
-        return "redirect:/equipo/" + creado.getCodigo();
+        try {
+            Equipo creado = equipoService.crear(dto);
+            redirectAttrs.addFlashAttribute("mensaje", "Equipo " + creado.getCodigo() + " registrado correctamente");
+            return "redirect:/equipo/" + creado.getCodigo();
+        } catch (RuntimeException e) {
+            result.rejectValue("area", "error.equipo", e.getMessage());
+            model.addAttribute("areas", CodigoGenerador.getAreas().keySet().stream().sorted().collect(Collectors.toList()));
+            model.addAttribute("cargos", CodigoGenerador.getCargos().keySet().stream().sorted().collect(Collectors.toList()));
+            model.addAttribute("marcasModelos", CodigoGenerador.getMarcasModelos());
+            model.addAttribute("opcionesRam", CodigoGenerador.getOpcionesRam());
+            model.addAttribute("opcionesDisco", CodigoGenerador.getOpcionesDisco());
+            return "equipos/formulario";
+        }
     }
 
     // ── Ficha equipo ──────────────────────────────────────────────────────
@@ -279,6 +286,14 @@ public class EquipoWebController {
     public String activar(@PathVariable String codigo, RedirectAttributes redirectAttrs) {
         equipoService.activarEquipo(codigo);
         redirectAttrs.addFlashAttribute("mensaje", "Equipo marcado como activo");
+        return "redirect:/equipo/" + codigo;
+    }
+
+    // Endpoint para enviar a stock
+    @PostMapping("/equipos/{codigo}/stock")
+    public String ponerEnStock(@PathVariable String codigo, RedirectAttributes redirectAttrs) {
+        equipoService.ponerEnStock(codigo);
+        redirectAttrs.addFlashAttribute("mensaje", "Equipo puesto en stock");
         return "redirect:/equipo/" + codigo;
     }
 }

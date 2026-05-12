@@ -2,7 +2,7 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <title th:text="${equipo.codigo} + ' · SysInventory'">Ficha</title>
     <style>
         :root{
@@ -44,6 +44,7 @@
         .btn-success{background:#EAFAF1;color:var(--green);border:1.5px solid #82E0AA}.btn-success:hover{background:var(--green);color:#fff}
         .btn-blue{background:#EBF5FB;color:var(--blue);border:1.5px solid #AED6F1}.btn-blue:hover{background:var(--blue);color:#fff}
         .alert{padding:.75rem 1.1rem;border-radius:var(--r);margin-bottom:1.2rem;font-weight:500;font-size:.87rem;display:flex;align-items:center;gap:.6rem;background:#EAFAF1;color:var(--green);border:1px solid #A9DFBF}
+        .alert svg{width:18px;height:18px;flex-shrink:0}
         .panel{background:var(--card);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--sh);overflow:hidden;margin-bottom:1.4rem}
         .ph2{padding:.85rem 1.4rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
         .ph2-title{font-size:.88rem;font-weight:700;display:flex;align-items:center;gap:.5rem}
@@ -61,6 +62,7 @@
         .b-act{background:#EAFAF1;color:var(--green)}
         .b-mnt{background:#FEF9E7;color:var(--orange)}
         .b-baj{background:#FDEDEC;color:var(--red)}
+        .b-stock{background:#EBF5FB;color:var(--blue)}
         .chip{font-family:monospace;font-size:.8rem;background:var(--bg);border:1px solid var(--border);padding:.12rem .45rem;border-radius:4px}
         .qr-wrap{display:flex;flex-direction:column;align-items:center;gap:.85rem}
         .qr-img{width:170px;height:170px;border:1px solid var(--border);border-radius:var(--r);padding:.35rem;background:#fff}
@@ -100,10 +102,25 @@
         .ticket-code{font-family:monospace;font-size:1.05rem;font-weight:800;margin:.35rem 0;letter-spacing:.04em}
         .ticket-qr{width:125px;height:125px;margin:.45rem auto}
         .ticket-info{font-size:.62rem;color:#555;margin-top:.4rem;line-height:1.5}
-        @media(max-width:900px){.ficha-grid{grid-template-columns:1fr}.form-row.c3,.form-row.c4,.form-row.c2a{grid-template-columns:1fr}}
+        /* ── Sidebar móvil ── */
+        .menu-toggle{display:none;position:fixed;top:10px;left:10px;z-index:300;background:var(--navy);color:white;border:none;padding:10px 12px;font-size:20px;border-radius:6px;cursor:pointer}
+        @media (max-width: 768px) {
+            .sidebar{transform:translateX(-100%);transition:transform 0.3s ease;width:250px;position:fixed;top:0;left:0;height:100vh;z-index:250}
+            .sidebar.open{transform:translateX(0)}
+            .main{margin-left:0}
+            .menu-toggle{display:block}
+        }
+        @media(max-width:900px){
+            .ficha-grid{grid-template-columns:1fr}
+            .form-row.c3,.form-row.c4,.form-row.c2a{grid-template-columns:1fr}
+            .action-bar{flex-direction:column}
+            .btn{width:100%;justify-content:center}
+            .ph{flex-direction:column;align-items:flex-start}
+        }
     </style>
 </head>
 <body>
+<button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
 <aside class="sidebar">
     <div class="s-logo">
         <img class="s-logo-img" src="/img/logo.png" alt="Mardique"/>
@@ -149,19 +166,28 @@
                 <div class="ph-sub" th:text="${equipo.responsable} + ' · ' + ${equipo.area}"></div>
             </div>
             <div class="action-bar">
-                <button type="button" class="btn btn-blue" onclick="modalConfirm('¿Desea cambiar el propietario?', function(si){ if(si) document.getElementById('panelPropietario').style.display='block'; })">Cambiar propietario</button>
-                <button type="button" class="btn btn-blue" onclick="modalConfirm('¿Desea actualizar hardware/estado?', function(si){ if(si) document.getElementById('panelHardware').style.display='block'; })">Actualizar hardware</button>
-                <button type="button" class="btn btn-danger" th:if="${equipo.estado != 'Dado de baja'}" onclick="modalConfirm('¿Está seguro de dar de baja este equipo?', function(si){ if(si) document.getElementById('formBaja').submit(); })">
-                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>Dar de baja
-                </button>
-                <form id="formBaja" th:action="@{/equipos/{c}/baja(c=${equipo.codigo})}" method="post" style="display:none;"></form>
-                <button type="button" class="btn btn-warning" th:if="${equipo.estado != 'En mantenimiento'}" onclick="modalConfirm('¿Enviar a mantenimiento?', function(si){ if(si) document.getElementById('formMantenimiento').submit(); })">
-                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Mantenimiento
-                </button>
-                <form id="formMantenimiento" th:action="@{/equipos/{c}/mantenimiento(c=${equipo.codigo})}" method="post" style="display:none;"></form>
-                <button type="button" class="btn btn-success" th:if="${equipo.estado != 'Activo'}" onclick="modalConfirm('¿Marcar como activo?', function(si){ if(si) document.getElementById('formActivar').submit(); })">
-                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Marcar activo
-                </button>
+                <button type="button" class="btn btn-blue" onclick="document.getElementById('panelPropietario').style.display='block'">Cambiar propietario</button>
+                <button type="button" class="btn btn-blue" onclick="document.getElementById('panelHardware').style.display='block'">Actualizar hardware</button>
+
+                <!-- Stock -->
+                <button type="button" class="btn btn-blue" th:if="${equipo.estado != 'En stock'}" onclick="abrirModalMotivo('modalMotivoStock','motivoStock')">En stock</button>
+                <form id="formStock" th:action="@{/equipos/{c}/stock(c=${equipo.codigo})}" method="post" style="display:none;">
+                    <input type="hidden" name="motivo" id="motivoStock"/>
+                </form>
+
+                <!-- Baja -->
+                <button type="button" class="btn btn-danger" th:if="${equipo.estado != 'Dado de baja'}" onclick="abrirModalMotivo('modalMotivoBaja','motivoBaja')">Dar de baja</button>
+                <form id="formBaja" th:action="@{/equipos/{c}/baja(c=${equipo.codigo})}" method="post" style="display:none;">
+                    <input type="hidden" name="motivo" id="motivoBaja"/>
+                </form>
+
+                <!-- Mantenimiento -->
+                <button type="button" class="btn btn-warning" th:if="${equipo.estado != 'En mantenimiento'}" onclick="abrirModalMotivo('modalMotivoMantenimiento','motivoMantenimiento')">Mantenimiento</button>
+                <form id="formMantenimiento" th:action="@{/equipos/{c}/mantenimiento(c=${equipo.codigo})}" method="post" style="display:none;">
+                    <input type="hidden" name="motivo" id="motivoMantenimiento"/>
+                </form>
+
+                <button type="button" class="btn btn-success" th:if="${equipo.estado != 'Activo'}" onclick="document.getElementById('formActivar').submit()">Marcar activo</button>
                 <form id="formActivar" th:action="@{/equipos/{c}/activar(c=${equipo.codigo})}" method="post" style="display:none;"></form>
             </div>
         </div>
@@ -177,6 +203,7 @@
                     <span class="badge b-act" th:if="${equipo.estado == 'Activo'}"><span class="bdot"></span> Activo</span>
                     <span class="badge b-mnt" th:if="${equipo.estado == 'En mantenimiento'}"><span class="bdot"></span> En mantenimiento</span>
                     <span class="badge b-baj" th:if="${equipo.estado == 'Dado de baja'}"><span class="bdot"></span> Dado de baja</span>
+                    <span class="badge b-stock" th:if="${equipo.estado == 'En stock'}"><span class="bdot"></span> En stock</span>
                 </div>
                 <div class="pb">
                     <table class="info-tbl">
@@ -194,14 +221,14 @@
                         <tr><th>Fecha entrega</th><td th:text="${equipo.fechaEntrega != null ? equipo.fechaEntrega : '—'}">—</td></tr>
                         <tr><th>Préstamo</th>
                             <td>
-                                <span class="badge b-mnt" th:if="${equipo.esPrestamo}"><span class="bdot"></span>Sí</span>
+                                <span style="color:var(--green);font-weight:600" th:if="${equipo.esPrestamo}">Sí</span>
                                 <span style="color:var(--muted)" th:unless="${equipo.esPrestamo}">No</span>
                             </td>
                         </tr>
                         <tr><th>Cargador</th>
                             <td>
                                 <span th:if="${equipo.incluyeCargador}">
-                                    <span class="badge b-act"><span class="bdot"></span>Sí</span>
+                                    <span style="color:var(--green);font-weight:600">Sí</span>
                                     <span style="font-size:.8rem;color:var(--muted);margin-left:.4rem"
                                           th:text="${equipo.cargadorMarca != null ? equipo.cargadorMarca + ' ' + (equipo.cargadorModelo != null ? equipo.cargadorModelo : '') : ''}"></span>
                                 </span>
@@ -244,7 +271,7 @@
             </div>
         </div>
 
-        <!-- ── Cambiar propietario (oculto por defecto) ── -->
+        <!-- Cambiar propietario -->
         <div class="panel" id="panelPropietario" style="display:none;">
             <div class="ph2">
                 <span class="ph2-title">
@@ -292,7 +319,7 @@
             </div>
         </div>
 
-        <!-- ── Actualizar hardware (oculto por defecto) ── -->
+        <!-- Actualizar hardware -->
         <div class="panel" id="panelHardware" style="display:none;">
             <div class="ph2">
                 <span class="ph2-title">
@@ -351,7 +378,7 @@
             </div>
         </div>
 
-        <!-- ── Periféricos ── -->
+        <!-- Periféricos -->
         <th:block th:if="${equipo.perifericos != null and !equipo.perifericos.isEmpty()}">
             <div class="panel">
                 <div class="ph2">
@@ -372,7 +399,7 @@
             </div>
         </th:block>
 
-        <!-- ── Historial ── -->
+        <!-- Historial -->
         <div class="panel">
             <div class="ph2">
                 <span class="ph2-title">
@@ -402,7 +429,6 @@
                     </table>
                 </th:block>
 
-                <!-- Agregar evento manual -->
                 <form th:action="@{/equipos/{c}/historial(c=${equipo.codigo})}" th:object="${historialDTO}" method="post">
                     <div class="form-row c2a">
                         <div class="fg">
@@ -424,7 +450,7 @@
     </div>
 </div>
 
-<!-- Ticket impresión con logo de Mardique -->
+<!-- Ticket impresión -->
 <div id="ticketPrint">
     <div class="ticket-inner">
         <img src="/img/logo.png" alt="Mardique" class="ticket-logo-img"/>
@@ -439,36 +465,110 @@
     </div>
 </div>
 
-<!-- Modal de confirmación -->
-<div id="modalConfirm" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+<!-- Modal de confirmación genérico (sin campo de texto) - ya no se usa para esos 3, pero se mantiene para hardware/propietario -->
+<div id="modalConfirmSimple" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
     <div style="background:white;border-radius:12px;padding:2rem;max-width:400px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,0.2);">
-        <p id="modalConfirmMsg" style="font-size:1rem;margin-bottom:1.5rem;color:var(--text);"></p>
+        <p id="modalConfirmSimpleMsg" style="font-size:1rem;margin-bottom:1.5rem;color:var(--text);"></p>
         <div style="display:flex;gap:1rem;justify-content:center;">
-            <button id="modalConfirmYes" class="btn btn-gold">Confirmar</button>
-            <button id="modalConfirmNo" class="btn btn-outline">Cancelar</button>
+            <button id="modalConfirmSimpleYes" class="btn btn-gold">Confirmar</button>
+            <button id="modalConfirmSimpleNo" class="btn btn-outline">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal con campo de texto (para stock, baja, mantenimiento) -->
+<div id="modalMotivo" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:12px;padding:2rem;max-width:450px;width:90%;box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+        <h3 id="modalMotivoTitulo" style="font-size:1.1rem;font-weight:700;margin-bottom:1rem;">Motivo</h3>
+        <textarea id="modalMotivoTexto" style="width:100%;padding:.5rem;border:1px solid var(--border);border-radius:8px;font-size:.86rem;resize:vertical;min-height:80px;" placeholder="Escriba el motivo..."></textarea>
+        <div style="display:flex;gap:1rem;justify-content:flex-end;margin-top:1.5rem;">
+            <button onclick="cerrarModalMotivo()" class="btn btn-outline">Cancelar</button>
+            <button id="modalMotivoConfirmar" class="btn btn-gold">Confirmar</button>
         </div>
     </div>
 </div>
 
 <script>
+    // Variables para el modal con motivo
+    let currentTargetInputId = null;
+    let currentFormId = null;
+
+    function abrirModalMotivo(modalId, targetInputId) {
+        // modalId no se usa, siempre usamos 'modalMotivo'
+        const modal = document.getElementById('modalMotivo');
+        const titulo = document.getElementById('modalMotivoTitulo');
+        const texto = document.getElementById('modalMotivoTexto');
+
+        // Determinar título según el botón (stock, baja, mantenimiento)
+        if (targetInputId === 'motivoStock') {
+            titulo.textContent = 'Motivo para poner en stock';
+            currentFormId = 'formStock';
+        } else if (targetInputId === 'motivoBaja') {
+            titulo.textContent = 'Motivo para dar de baja';
+            currentFormId = 'formBaja';
+        } else if (targetInputId === 'motivoMantenimiento') {
+            titulo.textContent = 'Motivo para enviar a mantenimiento';
+            currentFormId = 'formMantenimiento';
+        }
+        currentTargetInputId = targetInputId;
+        texto.value = '';
+        modal.style.display = 'flex';
+        texto.focus();
+    }
+
+    function cerrarModalMotivo() {
+        document.getElementById('modalMotivo').style.display = 'none';
+        currentTargetInputId = null;
+        currentFormId = null;
+    }
+
+    document.getElementById('modalMotivoConfirmar').addEventListener('click', function() {
+        const motivo = document.getElementById('modalMotivoTexto').value.trim();
+        if (!motivo) {
+            alert('Debe escribir un motivo.');
+            return;
+        }
+        // Asignar el motivo al input hidden correspondiente
+        if (currentTargetInputId) {
+            document.getElementById(currentTargetInputId).value = motivo;
+        }
+        // Enviar el formulario
+        if (currentFormId) {
+            document.getElementById(currentFormId).submit();
+        }
+        cerrarModalMotivo();
+    });
+
+    // Cerrar modal al hacer clic fuera
+    document.getElementById('modalMotivo').addEventListener('click', function(e) {
+        if (e.target === this) cerrarModalMotivo();
+    });
+
+    // Funciones existentes
     function imprimirTicket() {
         var el = document.getElementById('ticketPrint');
         el.style.cssText = 'display:flex;align-items:center;justify-content:center;position:fixed;inset:0;background:#fff;z-index:9999';
         window.print();
         el.style.display = 'none';
     }
-    function modalConfirm(mensaje, callback) {
-        document.getElementById('modalConfirmMsg').textContent = mensaje;
-        document.getElementById('modalConfirm').style.display = 'flex';
-        document.getElementById('modalConfirmYes').onclick = function() {
-            document.getElementById('modalConfirm').style.display = 'none';
+
+    // Modal simple (para futuros usos, actualmente no se usa)
+    window.modalConfirm = function(mensaje, callback) {
+        const modal = document.getElementById('modalConfirmSimple');
+        document.getElementById('modalConfirmSimpleMsg').textContent = mensaje;
+        modal.style.display = 'flex';
+        document.getElementById('modalConfirmSimpleYes').onclick = function() {
+            modal.style.display = 'none';
             callback(true);
         };
-        document.getElementById('modalConfirmNo').onclick = function() {
-            document.getElementById('modalConfirm').style.display = 'none';
+        document.getElementById('modalConfirmSimpleNo').onclick = function() {
+            modal.style.display = 'none';
             callback(false);
         };
-    }
+    };
+    document.getElementById('modalConfirmSimple').addEventListener('click', function(e) {
+        if (e.target === this) this.style.display = 'none';
+    });
 </script>
 </body>
 </html>

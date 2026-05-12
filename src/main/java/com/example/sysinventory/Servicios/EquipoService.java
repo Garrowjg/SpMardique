@@ -51,6 +51,12 @@ public class EquipoService {
 
     // ── Crear ─────────────────────────────────────────────────────────────
     public Equipo crear(EquipoRequestDTO dto) {
+        // Verificar si ya existe un equipo con la misma área y cargo
+        List<Equipo> existentes = equipoRepository.findByAreaAndCargo(dto.getArea(), dto.getCargo());
+        if (!existentes.isEmpty()) {
+            throw new RuntimeException("Ya existe un equipo asignado al área " + dto.getArea() + " con el cargo " + dto.getCargo() + ". No se puede duplicar.");
+        }
+
         String codigo = codigoGenerador.generar(dto.getArea(), dto.getCargo());
 
         Equipo equipo = new Equipo();
@@ -207,6 +213,14 @@ public class EquipoService {
         Equipo equipo = buscarPorCodigo(codigo);
         equipo.setEstado("Activo");
         equipo.getHistorial().add(nuevoEvento("Equipo reactivado", "Sistema", "ESTADO"));
+        return equipoRepository.save(equipo);
+    }
+
+    // NUEVO: poner en stock (equipo sin dueño)
+    public Equipo ponerEnStock(String codigo) {
+        Equipo equipo = buscarPorCodigo(codigo);
+        equipo.setEstado("En stock");
+        equipo.getHistorial().add(nuevoEvento("Equipo puesto en stock", "Sistema", "ESTADO"));
         return equipoRepository.save(equipo);
     }
 

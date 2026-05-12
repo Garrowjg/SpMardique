@@ -2,7 +2,7 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <title>Dashboard - SysInventory | Mardique</title>
     <style>
         :root{
@@ -41,21 +41,21 @@
         .btn-p:hover{background:var(--gold-d)}
         .btn-p svg{width:15px;height:15px}
 
-        .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.1rem;margin-bottom:1.75rem}
-        .kpi{background:var(--card);border-radius:var(--r);padding:1.4rem 1.5rem;box-shadow:var(--sh);border:1px solid var(--border);position:relative;overflow:hidden}
-        .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+        .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem;margin-bottom:1.75rem}
+        .kpi{background:var(--card);border-radius:var(--r);padding:1.5rem 1.5rem;box-shadow:var(--sh);border:1px solid var(--border);position:relative;overflow:hidden}
+        .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:4px}
         .kpi.tot::before{background:var(--blue)}
         .kpi.act::before{background:var(--green)}
         .kpi.mnt::before{background:var(--orange)}
         .kpi.baj::before{background:var(--red)}
-        .kpi-ico{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:.85rem}
+        .kpi-ico{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:1rem}
         .kpi.tot .kpi-ico{background:#EBF5FB;color:var(--blue)}
         .kpi.act .kpi-ico{background:#EAFAF1;color:var(--green)}
         .kpi.mnt .kpi-ico{background:#FEF9E7;color:var(--orange)}
         .kpi.baj .kpi-ico{background:#FDEDEC;color:var(--red)}
-        .kpi-ico svg{width:20px;height:20px}
-        .kpi-n{font-size:2rem;font-weight:700;line-height:1}
-        .kpi-l{font-size:.8rem;color:var(--muted);margin-top:.35rem}
+        .kpi-ico svg{width:22px;height:22px}
+        .kpi-n{font-size:2rem;font-weight:700;line-height:1.1}
+        .kpi-l{font-size:.8rem;color:var(--muted);margin-top:.4rem}
 
         .panel{background:var(--card);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--sh);margin-bottom:1.4rem;overflow:hidden}
         .panel-hdr{padding:.9rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem;justify-content:space-between}
@@ -77,10 +77,31 @@
         .dot-act{background:var(--green)}.dot-mnt{background:var(--orange)}.dot-baj{background:var(--red)}
         .barra-bg{background:#E2E8F0;border-radius:9px;overflow:hidden}
         .barra-fill{height:100%;border-radius:9px;transition:width 0.6s ease}
+
+        /* ── Sidebar móvil ── */
+        .menu-toggle{display:none;position:fixed;top:10px;left:10px;z-index:300;background:var(--navy);color:white;border:none;padding:10px 12px;font-size:20px;border-radius:6px;cursor:pointer}
+        @media (max-width: 768px) {
+            .sidebar{transform:translateX(-100%);transition:transform 0.3s ease;width:250px;position:fixed;top:0;left:0;height:100vh;z-index:250}
+            .sidebar.open{transform:translateX(0)}
+            .main{margin-left:0}
+            .menu-toggle{display:block}
+            .page{padding:1.5rem 1rem}
+            .topbar{padding:0 1rem}
+            .topbar-r{gap:.5rem}
+            .t-date{display:none}
+            .kpi-grid{grid-template-columns:repeat(2,1fr);gap:.8rem}
+            .kpi{padding:1.2rem 1rem}
+            .kpi-ico{width:38px;height:38px;margin-bottom:.8rem}
+            .kpi-ico svg{width:18px;height:18px}
+            .kpi-n{font-size:1.6rem}
+            .kpi-l{font-size:.72rem}
+            .ph{flex-direction:column;align-items:flex-start}
+            .ph-left h1{font-size:1.3rem}
+        }
     </style>
 </head>
 <body>
-
+<button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
 <aside class="sidebar">
     <div class="s-logo">
         <img class="s-logo-img" src="/img/logo.png" alt="Mardique"/>
@@ -181,7 +202,6 @@
         </div>
     </div>
 </div>
-
 <script>
     document.getElementById('fechaHoy').textContent =
         new Date().toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});

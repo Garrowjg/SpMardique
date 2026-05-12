@@ -2,7 +2,7 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <title>Equipos · SysInventory | Mardique</title>
     <style>
         :root{
@@ -13,7 +13,6 @@
         }
         *{box-sizing:border-box;margin:0;padding:0}
         body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh}
-
         .sidebar{width:250px;background:var(--navy);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:200}
         .s-logo{padding:1.3rem 1.2rem;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:.75rem}
         .s-logo-img{height:34px;object-fit:contain;filter:brightness(0) invert(1)}
@@ -23,46 +22,49 @@
         .s-link:hover,.s-link.active{color:#fff;background:rgba(255,255,255,.06);border-left-color:var(--gold)}
         .s-link svg{width:15px;height:15px;flex-shrink:0}
         .s-bottom{margin-top:auto;padding:1rem 1.2rem;border-top:1px solid rgba(255,255,255,.06);font-size:.65rem;color:rgba(255,255,255,.2)}
-
         .main{margin-left:250px;flex:1;display:flex;flex-direction:column}
         .topbar{height:58px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;position:sticky;top:0;z-index:100}
         .topbar-title{font-size:.95rem;font-weight:600}
         .t-user{display:flex;align-items:center;gap:.5rem;background:var(--bg);border-radius:999px;padding:.28rem .7rem .28rem .35rem;font-size:.8rem;font-weight:500}
         .avatar{width:25px;height:25px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.67rem;font-weight:700}
         .page{padding:1.75rem 2rem;flex:1}
-
         .ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem}
         .ph h1{font-size:1.45rem;font-weight:700}
         .ph p{color:var(--muted);font-size:.88rem;margin-top:.2rem}
-
         .btn-p{display:inline-flex;align-items:center;gap:.45rem;background:var(--gold);color:#fff;padding:.5rem 1.15rem;border-radius:8px;font-size:.86rem;font-weight:600;text-decoration:none;border:none;cursor:pointer;transition:background .2s}
         .btn-p:hover{background:var(--gold-d)}
         .btn-p svg{width:15px;height:15px}
-
         .panel{background:var(--card);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--sh);margin-bottom:1.4rem;overflow:hidden}
         .panel-hdr{padding:.9rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem;justify-content:space-between}
         .panel-hdr-icon{width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,var(--gold),var(--gold-d));display:flex;align-items:center;justify-content:center}
         .panel-hdr-icon svg{width:15px;height:15px;color:#fff}
         .panel-hdr-title{font-size:.9rem;font-weight:700;display:flex;align-items:center;gap:.6rem}
         .panel-body{padding:1.4rem 1.5rem}
-
         .lnk{color:var(--blue);text-decoration:none;font-size:.85rem;font-weight:500}
         .lnk:hover{text-decoration:underline}
-
         table.clean{width:100%;border-collapse:collapse;font-size:.86rem}
         table.clean th{padding:.6rem .9rem;text-align:left;background:var(--bg);color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid var(--border);cursor:pointer;user-select:none}
         table.clean td{padding:.65rem .9rem;border-bottom:1px solid var(--border);vertical-align:middle}
         table.clean tbody tr:hover{background:#F8FAFC}
-
         .filters-bar{display:flex;gap:.8rem;margin-bottom:1rem;flex-wrap:wrap}
-        .filters-bar input, .filters-bar select{padding:.45rem .8rem;border:1px solid var(--border);border-radius:8px;font-size:.85rem;background:white;color:var(--text)}
+        .filters-bar input, .filters-bar select{padding:.45rem .8rem;border:1px solid var(--border);border-radius:8px;font-size:.85rem;background:white;color:var(--text);min-width:150px}
         .filters-bar input:focus, .filters-bar select:focus{outline:none;border-color:var(--gold)}
         @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+        .menu-toggle{display:none;position:fixed;top:10px;left:10px;z-index:300;background:var(--navy);color:white;border:none;padding:10px 12px;font-size:20px;border-radius:6px;cursor:pointer}
+        @media (max-width: 768px) {
+            .sidebar{transform:translateX(-100%);transition:transform 0.3s ease;width:250px;position:fixed;top:0;left:0;height:100vh;z-index:250}
+            .sidebar.open{transform:translateX(0)}
+            .main{margin-left:0}
+            .menu-toggle{display:block}
+            .page{padding:1.5rem 1rem}
+            .filters-bar{flex-direction:column}
+            .filters-bar input, .filters-bar select{width:100%}
+            table.clean{display:block;overflow-x:auto;white-space:nowrap}
+        }
     </style>
 </head>
 <body>
-
-<!-- Spinner de carga -->
+<button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
 <div id="loadingSpinner" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;">
     <div style="width:44px;height:44px;border:5px solid #E2E8F0;border-top:5px solid var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
 </div>
@@ -91,7 +93,6 @@
         <span class="topbar-title">Equipos registrados</span>
         <div class="t-user"><div class="avatar">TI</div>Sistemas</div>
     </div>
-
     <div class="page">
         <div class="ph">
             <div>
@@ -103,7 +104,6 @@
                 Nuevo equipo
             </a>
         </div>
-
         <div class="panel">
             <div class="panel-hdr">
                 <span class="panel-hdr-title">
@@ -112,7 +112,6 @@
                 </span>
             </div>
             <div class="panel-body">
-                <!-- Filtros -->
                 <div class="filters-bar">
                     <input type="text" id="filtroBusqueda" placeholder="Buscar por código, responsable, serial..." style="flex:1;min-width:200px;">
                     <select id="filtroEstado">
@@ -120,21 +119,19 @@
                         <option value="Activo">Activo</option>
                         <option value="En mantenimiento">En mantenimiento</option>
                         <option value="Dado de baja">Dado de baja</option>
+                        <option value="En stock">En stock</option>
                     </select>
                     <select id="filtroArea">
                         <option value="">Todas las áreas</option>
                     </select>
                 </div>
-                <!-- Tabla generada -->
                 <div th:utext="${tablaEquipos}"></div>
-                <!-- Controles de paginación (se insertan con JS) -->
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Ocultar spinner al cargar
     window.addEventListener('load', function() {
         document.getElementById('loadingSpinner').style.display = 'none';
         inicializarLista();
@@ -144,7 +141,7 @@
         const table = document.querySelector('table.clean');
         if (!table) return;
 
-        // Llenar select de áreas con valores únicos de la tabla
+        // Llenar filtro de áreas
         const areas = new Set();
         table.querySelectorAll('tbody tr').forEach(row => {
             const area = row.getAttribute('data-area');
@@ -158,13 +155,17 @@
             selArea.appendChild(opt);
         });
 
-        // ---- FILTROS ----
-        function aplicarFiltros() {
+        const tbody = table.querySelector('tbody');
+        const allRows = Array.from(tbody.querySelectorAll('tr'));
+        let rowsPerPage = 10;
+        let currentPage = 1;
+        let currentVisibleRows = [...allRows];
+
+        function getVisibleRows() {
             const texto = document.getElementById('filtroBusqueda').value.toLowerCase();
             const estado = document.getElementById('filtroEstado').value;
             const area = document.getElementById('filtroArea').value;
-            const rows = table.querySelectorAll('tbody tr');
-            rows.forEach(row => {
+            return allRows.filter(row => {
                 const codigo = row.getAttribute('data-codigo') || '';
                 const responsable = row.getAttribute('data-responsable') || '';
                 const serial = row.getAttribute('data-serial') || '';
@@ -177,59 +178,55 @@
                     dataArea.toLowerCase().includes(texto);
                 const coincideEstado = !estado || dataEstado === estado;
                 const coincideArea = !area || dataArea === area;
-                row.style.display = (coincideTexto && coincideEstado && coincideArea) ? '' : 'none';
+                return coincideTexto && coincideEstado && coincideArea;
             });
-            // Reiniciar paginación después de filtrar
-            if (window.paginationInstance) {
-                window.paginationInstance.update();
+        }
+
+        function showPage(page, visibleRows = null) {
+            if (!visibleRows) visibleRows = getVisibleRows();
+            currentVisibleRows = visibleRows;
+            const totalPages = Math.ceil(visibleRows.length / rowsPerPage) || 1;
+            if (page < 1) page = 1;
+            if (page > totalPages) page = totalPages;
+            currentPage = page;
+            allRows.forEach(row => row.style.display = 'none');
+            const start = (page - 1) * rowsPerPage;
+            const end = Math.min(start + rowsPerPage, visibleRows.length);
+            for (let i = start; i < end; i++) {
+                visibleRows[i].style.display = '';
             }
+            document.getElementById('pageInfo').textContent =
+                `Página ${currentPage} de ${totalPages} (${visibleRows.length} equipos visibles)`;
+            document.getElementById('prevPage').disabled = currentPage === 1;
+            document.getElementById('nextPage').disabled = currentPage === totalPages;
+        }
+
+        function aplicarFiltros() {
+            const visibles = getVisibleRows();
+            showPage(1, visibles);
         }
 
         document.getElementById('filtroBusqueda').addEventListener('input', aplicarFiltros);
         document.getElementById('filtroEstado').addEventListener('change', aplicarFiltros);
         document.getElementById('filtroArea').addEventListener('change', aplicarFiltros);
 
-        // ---- ORDENAMIENTO ----
         const headers = table.querySelectorAll('th');
         headers.forEach((th, index) => {
             th.addEventListener('click', function() {
-                const tbody = table.querySelector('tbody');
-                const rows = Array.from(tbody.querySelectorAll('tr'));
                 const isAsc = th.classList.contains('asc');
                 headers.forEach(h => h.classList.remove('asc','desc'));
                 th.classList.add(isAsc ? 'desc' : 'asc');
-                rows.sort((a, b) => {
+                currentVisibleRows.sort((a, b) => {
                     const aVal = a.cells[index].textContent.trim();
                     const bVal = b.cells[index].textContent.trim();
                     const numA = parseFloat(aVal), numB = parseFloat(bVal);
                     if (!isNaN(numA) && !isNaN(numB)) return isAsc ? numB - numA : numA - numB;
                     return isAsc ? bVal.localeCompare(aVal) : aVal.localeCompare(bVal);
                 });
-                rows.forEach(row => tbody.appendChild(row));
-                if (window.paginationInstance) window.paginationInstance.update();
+                currentVisibleRows.forEach(row => tbody.appendChild(row));
+                showPage(currentPage, currentVisibleRows);
             });
         });
-
-        // ---- PAGINACIÓN ----
-        const tbody = table.querySelector('tbody');
-        const allRows = Array.from(tbody.querySelectorAll('tr'));
-        const rowsPerPage = 10;
-        let currentPage = 1;
-        const totalPages = Math.ceil(allRows.length / rowsPerPage) || 1;
-
-        function showPage(page) {
-            currentPage = page;
-            const start = (page - 1) * rowsPerPage;
-            const end = start + rowsPerPage;
-            allRows.forEach((row, i) => {
-                // Solo mostrar si además pasa los filtros (display no está forzado a none por filtro)
-                if (row.style.display === 'none') return;
-                row.style.display = (i >= start && i < end) ? '' : 'none';
-            });
-            document.getElementById('pageInfo').textContent = `Página ${currentPage} de ${totalPages} (${allRows.length} equipos)`;
-            document.getElementById('prevPage').disabled = currentPage === 1;
-            document.getElementById('nextPage').disabled = currentPage === totalPages;
-        }
 
         const pagDiv = document.createElement('div');
         pagDiv.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:1rem;margin-top:1rem;';
@@ -239,26 +236,17 @@
             <button id="nextPage" class="btn-p" style="padding:.3rem .8rem;">Siguiente →</button>
         `;
         table.parentNode.insertBefore(pagDiv, table.nextSibling);
-        document.getElementById('prevPage').addEventListener('click', () => { if (currentPage > 1) showPage(currentPage - 1); });
-        document.getElementById('nextPage').addEventListener('click', () => { if (currentPage < totalPages) showPage(currentPage + 1); });
 
-        window.paginationInstance = {
-            update: function() {
-                // Recalcular filas visibles por filtro
-                const visibleRows = allRows.filter(row => row.style.display !== 'none');
-                // Mostrar primera página de las visibles
-                visibleRows.forEach((row, i) => {
-                    row.style.display = (i < rowsPerPage) ? '' : 'none';
-                });
-                currentPage = 1;
-                document.getElementById('pageInfo').textContent = `Página 1 de ${Math.ceil(visibleRows.length / rowsPerPage) || 1} (${allRows.length} equipos totales)`;
-                document.getElementById('prevPage').disabled = true;
-                document.getElementById('nextPage').disabled = visibleRows.length <= rowsPerPage;
-            }
-        };
+        document.getElementById('prevPage').addEventListener('click', () => {
+            if (currentPage > 1) showPage(currentPage - 1, currentVisibleRows);
+        });
+        document.getElementById('nextPage').addEventListener('click', () => {
+            const totalPages = Math.ceil(currentVisibleRows.length / rowsPerPage) || 1;
+            if (currentPage < totalPages) showPage(currentPage + 1, currentVisibleRows);
+        });
 
-        if (totalPages > 1) showPage(1);
-        else document.getElementById('pageInfo').textContent = `Mostrando ${allRows.length} equipos`;
+        const initialVisibles = getVisibleRows();
+        showPage(1, initialVisibles);
     }
 </script>
 </body>
