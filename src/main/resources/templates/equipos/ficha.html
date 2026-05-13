@@ -3,32 +3,62 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-    <title th:text="${equipo.codigo} + ' · SysInventory'">Ficha</title>
+    <title th:text="${equipo.codigo} + ' · SysInventory | Mardique'">Ficha de equipo</title>
     <style>
         :root{
-            --gold:#C49A28;--gold-d:#9A7A1A;
-            --navy:#0D1B2A;--blue:#2E86C1;
-            --green:#27AE60;--orange:#E67E22;--red:#E74C3C;
-            --bg:#F2F4F7;--card:#fff;--text:#1C2833;--muted:#6C7A89;
-            --border:#DDE1E7;--r:10px;--sh:0 2px 14px rgba(0,0,0,.07);
+            --gold:#C49A28;
+            --gold-l:#D9B14B;
+            --gold-d:#8C6B12;
+            --navy:#111827;
+            --navy-2:#1E293B;
+            --blue:#1992D4;
+            --cyan:#27B4D8;
+            --green:#16A34A;
+            --orange:#F59E0B;
+            --red:#DC2626;
+            --bg:#EEF2F7;
+            --card:#FFFFFF;
+            --text:#1F2937;
+            --muted:#6B7280;
+            --border:#E5E7EB;
+            --r:18px;
+            --shadow:0 10px 25px rgba(15,23,42,.06), 0 4px 10px rgba(15,23,42,.04);
         }
         *{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh}
-        .sidebar{width:250px;background:var(--navy);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:200}
-        .s-logo{padding:1.3rem 1.2rem;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:.75rem}
-        .s-logo-img{height:34px;object-fit:contain;filter:brightness(0) invert(1)}
-        .s-logo-txt{color:rgba(255,255,255,.55);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;line-height:1.4}
-        .s-sect{padding:.8rem 1.2rem .2rem;font-size:.6rem;color:rgba(255,255,255,.28);text-transform:uppercase;letter-spacing:.1em;font-weight:700}
-        .s-link{display:flex;align-items:center;gap:.7rem;padding:.65rem 1.2rem;color:rgba(255,255,255,.6);text-decoration:none;font-size:.84rem;border-left:3px solid transparent;transition:all .18s}
-        .s-link:hover,.s-link.active{color:#fff;background:rgba(255,255,255,.06);border-left-color:var(--gold)}
-        .s-link svg{width:15px;height:15px;flex-shrink:0}
-        .s-bottom{margin-top:auto;padding:1rem 1.2rem;border-top:1px solid rgba(255,255,255,.06);font-size:.65rem;color:rgba(255,255,255,.2)}
-        .main{margin-left:250px;flex:1;display:flex;flex-direction:column}
-        .topbar{height:58px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;position:sticky;top:0;z-index:100}
-        .topbar-title{font-size:.95rem;font-weight:600}
-        .t-user{display:flex;align-items:center;gap:.5rem;background:var(--bg);border-radius:999px;padding:.28rem .7rem .28rem .35rem;font-size:.8rem;font-weight:500}
-        .avatar{width:25px;height:25px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.67rem;font-weight:700}
-        .page{padding:1.75rem 2rem;flex:1}
+        body{font-family:'Segoe UI',system-ui,sans-serif;background:linear-gradient(180deg,#F4F7FB 0%,#EDF2F7 100%);color:var(--text);display:flex;min-height:100vh;overflow-x:hidden}
+        .sidebar{width:260px;background:linear-gradient(180deg,#0F172A 0%, #111827 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:200;transition:transform .3s ease;border-right:1px solid rgba(255,255,255,.04)}
+        .sidebar::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--gold),#F5C84C,var(--blue))}
+        .sidebar.collapsed{transform:translateX(-100%)}
+        .s-logo{padding:1.6rem 1.4rem;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:.9rem}
+        .s-logo-img{height:42px;object-fit:contain;background:white;border-radius:12px;padding:.2rem}
+        .s-logo-txt{color:#fff;font-weight:700;font-size:.95rem;line-height:1.2}
+        .s-logo-txt span{display:block;color:rgba(255,255,255,.5);font-size:.68rem;font-weight:500;margin-top:.2rem;letter-spacing:.05em;text-transform:uppercase}
+        .s-sect{padding:1.2rem 1.4rem .4rem;font-size:.68rem;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.12em;font-weight:700}
+        .s-link{margin:.15rem .8rem;display:flex;align-items:center;gap:.8rem;padding:.85rem 1rem;color:rgba(255,255,255,.65);text-decoration:none;font-size:.9rem;border-radius:12px;transition:.25s;position:relative}
+        .s-link svg{width:18px;height:18px}
+        .s-link:hover{background:rgba(255,255,255,.06);color:#fff;transform:translateX(4px)}
+        .s-link.active{background:linear-gradient(90deg,rgba(196,154,40,.20),rgba(196,154,40,.06));color:#fff;border:1px solid rgba(196,154,40,.35)}
+        .s-link.active::before{content:'';position:absolute;left:-8px;width:4px;height:24px;border-radius:10px;background:var(--gold)}
+        .s-bottom{margin-top:auto;padding:1.3rem;color:rgba(255,255,255,.28);font-size:.72rem;border-top:1px solid rgba(255,255,255,.06)}
+        .main{margin-left:260px;flex:1;display:flex;flex-direction:column;transition:margin-left .3s ease}
+        .main.full{margin-left:0}
+        .topbar{height:72px;background:rgba(255,255,255,.78);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:space-between;padding:0 1.8rem;position:sticky;top:0;z-index:100}
+        .topbar-left{display:flex;align-items:center;gap:1rem}
+        .menu-toggle{width:40px;height:40px;border:none;background:white;border-radius:12px;cursor:pointer;box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;transition:.25s}
+        .menu-toggle:hover{transform:translateY(-2px)}
+        .logo-top{display:flex;align-items:center;gap:.8rem;text-decoration:none}
+        .logo-top-img{height:36px;background:white;border-radius:10px;padding:.2rem}
+        .logo-top-text{font-weight:800;font-size:1rem;color:var(--navy)}
+        .topbar-title{font-size:.9rem;color:var(--muted);margin-left:.6rem}
+        .topbar-right{display:flex;align-items:center;gap:1rem}
+        .user-info{display:flex;align-items:center;gap:.8rem;background:white;padding:.45rem .9rem .45rem .45rem;border-radius:999px;box-shadow:var(--shadow)}
+        .avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-d));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:1rem;text-transform:uppercase}
+        .user-details{display:flex;flex-direction:column}
+        .user-name{font-size:.83rem;font-weight:700}
+        .user-email{font-size:.7rem;color:var(--muted)}
+        .btn-logout{background:white;border:none;border-radius:12px;padding:.7rem 1rem;color:var(--red);cursor:pointer;display:flex;align-items:center;gap:.5rem;font-weight:600;box-shadow:var(--shadow);transition:.25s}
+        .btn-logout:hover{transform:translateY(-2px)}
+        .page{padding:2rem}
         .bc{display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:var(--muted);margin-bottom:1.4rem}
         .bc a{color:var(--muted);text-decoration:none}.bc a:hover{color:var(--gold)}
         .ph{margin-bottom:1.6rem;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem}
@@ -37,7 +67,7 @@
         .action-bar{display:flex;gap:.6rem;flex-wrap:wrap}
         .btn{display:inline-flex;align-items:center;gap:.4rem;padding:.48rem 1rem;border-radius:8px;font-size:.83rem;font-weight:600;border:none;cursor:pointer;text-decoration:none;transition:all .18s;white-space:nowrap}
         .btn svg{width:14px;height:14px;flex-shrink:0}
-        .btn-gold{background:var(--gold);color:#fff}.btn-gold:hover{background:var(--gold-d)}
+        .btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-d));color:#fff}.btn-gold:hover{transform:translateY(-2px)}
         .btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text)}.btn-outline:hover{border-color:var(--gold);color:var(--gold-d);background:#FEF9E7}
         .btn-danger{background:#FDEDEC;color:var(--red);border:1.5px solid #F1948A}.btn-danger:hover{background:var(--red);color:#fff}
         .btn-warning{background:#FEF9E7;color:var(--orange);border:1.5px solid #F0B27A}.btn-warning:hover{background:var(--orange);color:#fff}
@@ -45,7 +75,7 @@
         .btn-blue{background:#EBF5FB;color:var(--blue);border:1.5px solid #AED6F1}.btn-blue:hover{background:var(--blue);color:#fff}
         .alert{padding:.75rem 1.1rem;border-radius:var(--r);margin-bottom:1.2rem;font-weight:500;font-size:.87rem;display:flex;align-items:center;gap:.6rem;background:#EAFAF1;color:var(--green);border:1px solid #A9DFBF}
         .alert svg{width:18px;height:18px;flex-shrink:0}
-        .panel{background:var(--card);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--sh);overflow:hidden;margin-bottom:1.4rem}
+        .panel{background:white;border-radius:24px;box-shadow:var(--shadow);overflow:hidden;border:1px solid rgba(255,255,255,.6);margin-bottom:1.4rem}
         .ph2{padding:.85rem 1.4rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
         .ph2-title{font-size:.88rem;font-weight:700;display:flex;align-items:center;gap:.5rem}
         .ph2-icon{width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,var(--gold),var(--gold-d));display:flex;align-items:center;justify-content:center}
@@ -69,7 +99,7 @@
         .qr-code{font-family:monospace;font-size:1rem;font-weight:700;letter-spacing:.06em;color:var(--blue);text-align:center}
         .qr-actions{display:flex;flex-direction:column;gap:.5rem;width:100%}
         .perifericos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:.75rem}
-        .peri-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem}
+        .peri-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem;position:relative}
         .peri-tipo{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--gold-d);margin-bottom:.35rem}
         .peri-marca{font-size:.88rem;font-weight:600}
         .peri-serial{font-size:.72rem;color:var(--muted);margin-top:.2rem;font-family:monospace}
@@ -102,15 +132,37 @@
         .ticket-code{font-family:monospace;font-size:1.05rem;font-weight:800;margin:.35rem 0;letter-spacing:.04em}
         .ticket-qr{width:125px;height:125px;margin:.45rem auto}
         .ticket-info{font-size:.62rem;color:#555;margin-top:.4rem;line-height:1.5}
-        /* ── Sidebar móvil ── */
-        .menu-toggle{display:none;position:fixed;top:10px;left:10px;z-index:300;background:var(--navy);color:white;border:none;padding:10px 12px;font-size:20px;border-radius:6px;cursor:pointer}
-        @media (max-width: 768px) {
-            .sidebar{transform:translateX(-100%);transition:transform 0.3s ease;width:250px;position:fixed;top:0;left:0;height:100vh;z-index:250}
-            .sidebar.open{transform:translateX(0)}
-            .main{margin-left:0}
-            .menu-toggle{display:block}
+        .btn-remove-peri {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: #FDEDEC;
+            border-radius: 8px;
+            color: var(--red);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background .18s;
         }
-        @media(max-width:900px){
+        .btn-remove-peri:hover {
+            background: #F1948A;
+            color: #fff;
+        }
+        .btn-remove-peri svg {
+            width: 13px;
+            height: 13px;
+        }
+        @media(max-width:768px){
+            .sidebar{transform:translateX(-100%)}
+            .sidebar.collapsed{transform:translateX(0)}
+            .main{margin-left:0}
+            .page{padding:1rem}
+            .user-details{display:none}
+            .btn-logout span{display:none}
             .ficha-grid{grid-template-columns:1fr}
             .form-row.c3,.form-row.c4,.form-row.c2a{grid-template-columns:1fr}
             .action-bar{flex-direction:column}
@@ -120,31 +172,56 @@
     </style>
 </head>
 <body>
-<button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
-<aside class="sidebar">
+
+<aside class="sidebar" id="sidebar">
     <div class="s-logo">
         <img class="s-logo-img" src="/img/logo.png" alt="Mardique"/>
-        <div class="s-logo-txt">Sistemas<br>Inventario TI</div>
+        <div class="s-logo-txt">SysInventory<span>Mardique SP</span></div>
     </div>
     <div class="s-sect">Principal</div>
     <a th:href="@{/}" class="s-link">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
     </a>
     <div class="s-sect">Inventario</div>
-    <a th:href="@{/equipos}" class="s-link active">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Equipos
+    <a th:href="@{/equipos}" class="s-link">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        Equipos
     </a>
     <a th:href="@{/equipos/nuevo}" class="s-link">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>Registrar equipo
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+        Registrar equipo
     </a>
-    <div class="s-bottom">SysInventory v1.0 · Mardique SP</div>
+    <div class="s-bottom">SysInventory v1.0 <br> Mardique Sociedad Portuaria</div>
 </aside>
 
-<div class="main">
+<div class="main" id="main">
     <div class="topbar">
-        <span class="topbar-title">Ficha de equipo</span>
-        <div class="t-user"><div class="avatar">TI</div>Sistemas</div>
+        <div class="topbar-left">
+            <button class="menu-toggle" id="menuToggle">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+            <a th:href="@{/}" class="logo-top"><img class="logo-top-img" src="/img/logo.png"/><span class="logo-top-text">SysInventory</span></a>
+            <span class="topbar-title">Ficha de equipo</span>
+        </div>
+        <div class="topbar-right">
+            <div class="user-info">
+                <div class="avatar" th:text="${#strings.substring(userName,0,1)}">U</div>
+                <div class="user-details">
+                    <span class="user-name" th:text="${userName}">Usuario</span>
+                    <span class="user-email" th:text="${userEmail}">correo@ejemplo.com</span>
+                </div>
+            </div>
+            <form th:action="@{/logout}" method="post" style="display:inline">
+                <input type="hidden" name="_csrf" th:value="${_csrf != null ? _csrf.token : ''}"/>
+                <button type="submit" class="btn-logout">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <span>Cerrar sesión</span>
+                </button>
+            </form>
+        </div>
     </div>
+
     <div class="page">
         <div class="bc">
             <a th:href="@{/}">Dashboard</a>
@@ -159,47 +236,29 @@
             <span th:text="${mensaje}"></span>
         </div>
 
-        <!-- Header -->
         <div class="ph">
             <div>
                 <div class="code-tag" th:text="${equipo.codigo}"></div>
-                <div class="ph-sub" th:text="${equipo.responsable} + ' · ' + ${equipo.area}"></div>
+                <div class="ph-sub" th:text="${equipo.responsable != null ? equipo.responsable : 'Desconocido'} + ' · ' + (${equipo.area != null ? equipo.area : 'Sin asignar'})"></div>
             </div>
             <div class="action-bar">
                 <button type="button" class="btn btn-blue" onclick="document.getElementById('panelPropietario').style.display='block'">Cambiar propietario</button>
                 <button type="button" class="btn btn-blue" onclick="document.getElementById('panelHardware').style.display='block'">Actualizar hardware</button>
-
-                <!-- Stock -->
-                <button type="button" class="btn btn-blue" th:if="${equipo.estado != 'En stock'}" onclick="abrirModalMotivo('modalMotivoStock','motivoStock')">En stock</button>
-                <form id="formStock" th:action="@{/equipos/{c}/stock(c=${equipo.codigo})}" method="post" style="display:none;">
-                    <input type="hidden" name="motivo" id="motivoStock"/>
-                </form>
-
-                <!-- Baja -->
-                <button type="button" class="btn btn-danger" th:if="${equipo.estado != 'Dado de baja'}" onclick="abrirModalMotivo('modalMotivoBaja','motivoBaja')">Dar de baja</button>
-                <form id="formBaja" th:action="@{/equipos/{c}/baja(c=${equipo.codigo})}" method="post" style="display:none;">
-                    <input type="hidden" name="motivo" id="motivoBaja"/>
-                </form>
-
-                <!-- Mantenimiento -->
-                <button type="button" class="btn btn-warning" th:if="${equipo.estado != 'En mantenimiento'}" onclick="abrirModalMotivo('modalMotivoMantenimiento','motivoMantenimiento')">Mantenimiento</button>
-                <form id="formMantenimiento" th:action="@{/equipos/{c}/mantenimiento(c=${equipo.codigo})}" method="post" style="display:none;">
-                    <input type="hidden" name="motivo" id="motivoMantenimiento"/>
-                </form>
-
+                <button type="button" class="btn btn-blue" th:if="${equipo.estado != 'En stock'}" onclick="abrirModalMotivo('motivoStock')">En stock</button>
+                <form id="formStock" th:action="@{/equipos/{c}/stock(c=${equipo.codigo})}" method="post" style="display:none;"><input type="hidden" name="motivo" id="motivoStock"/></form>
+                <button type="button" class="btn btn-danger" th:if="${equipo.estado != 'Dado de baja'}" onclick="abrirModalMotivo('motivoBaja')">Dar de baja</button>
+                <form id="formBaja" th:action="@{/equipos/{c}/baja(c=${equipo.codigo})}" method="post" style="display:none;"><input type="hidden" name="motivo" id="motivoBaja"/></form>
+                <button type="button" class="btn btn-warning" th:if="${equipo.estado != 'En mantenimiento'}" onclick="abrirModalMotivo('motivoMantenimiento')">Mantenimiento</button>
+                <form id="formMantenimiento" th:action="@{/equipos/{c}/mantenimiento(c=${equipo.codigo})}" method="post" style="display:none;"><input type="hidden" name="motivo" id="motivoMantenimiento"/></form>
                 <button type="button" class="btn btn-success" th:if="${equipo.estado != 'Activo'}" onclick="document.getElementById('formActivar').submit()">Marcar activo</button>
                 <form id="formActivar" th:action="@{/equipos/{c}/activar(c=${equipo.codigo})}" method="post" style="display:none;"></form>
             </div>
         </div>
 
-        <!-- Ficha + QR -->
         <div class="ficha-grid">
             <div class="panel">
                 <div class="ph2">
-                    <span class="ph2-title">
-                        <span class="ph2-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span>
-                        Información del equipo
-                    </span>
+                    <span class="ph2-title"><span class="ph2-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span>Información del equipo</span>
                     <span class="badge b-act" th:if="${equipo.estado == 'Activo'}"><span class="bdot"></span> Activo</span>
                     <span class="badge b-mnt" th:if="${equipo.estado == 'En mantenimiento'}"><span class="bdot"></span> En mantenimiento</span>
                     <span class="badge b-baj" th:if="${equipo.estado == 'Dado de baja'}"><span class="bdot"></span> Dado de baja</span>
@@ -207,9 +266,9 @@
                 </div>
                 <div class="pb">
                     <table class="info-tbl">
-                        <tr><th>Responsable</th><td th:text="${equipo.responsable}">—</td></tr>
-                        <tr><th>Área</th><td th:text="${equipo.area}">—</td></tr>
-                        <tr><th>Cargo</th><td th:text="${equipo.cargo}">—</td></tr>
+                        <tr><th>Responsable</th><td th:text="${equipo.responsable != null ? equipo.responsable : 'Desconocido'}">—</td></tr>
+                        <tr><th>Área</th><td th:text="${equipo.area != null ? equipo.area : 'Sin asignar'}">—</td></tr>
+                        <tr><th>Cargo</th><td th:text="${equipo.cargo != null ? equipo.cargo : 'Sin asignar'}">—</td></tr>
                         <tr><th>Tipo</th><td th:text="${equipo.tipoDispositivo != null ? equipo.tipoDispositivo : '—'}">—</td></tr>
                         <tr><th>Marca</th><td th:text="${equipo.marca != null ? equipo.marca : '—'}">—</td></tr>
                         <tr><th>Modelo</th><td th:text="${equipo.modelo != null ? equipo.modelo : '—'}">—</td></tr>
@@ -219,51 +278,27 @@
                         <tr><th>Disco</th><td th:text="${equipo.disco != null ? equipo.disco : '—'}">—</td></tr>
                         <tr><th>Estado físico</th><td th:text="${equipo.estadoFisico != null ? equipo.estadoFisico : '—'}">—</td></tr>
                         <tr><th>Fecha entrega</th><td th:text="${equipo.fechaEntrega != null ? equipo.fechaEntrega : '—'}">—</td></tr>
-                        <tr><th>Préstamo</th>
-                            <td>
-                                <span style="color:var(--green);font-weight:600" th:if="${equipo.esPrestamo}">Sí</span>
-                                <span style="color:var(--muted)" th:unless="${equipo.esPrestamo}">No</span>
-                            </td>
-                        </tr>
-                        <tr><th>Cargador</th>
-                            <td>
-                                <span th:if="${equipo.incluyeCargador}">
-                                    <span style="color:var(--green);font-weight:600">Sí</span>
-                                    <span style="font-size:.8rem;color:var(--muted);margin-left:.4rem"
-                                          th:text="${equipo.cargadorMarca != null ? equipo.cargadorMarca + ' ' + (equipo.cargadorModelo != null ? equipo.cargadorModelo : '') : ''}"></span>
-                                </span>
-                                <span style="color:var(--muted)" th:unless="${equipo.incluyeCargador}">No</span>
-                            </td>
-                        </tr>
-                        <tr th:if="${equipo.observaciones != null and !equipo.observaciones.isEmpty()}">
-                            <th>Observaciones</th><td th:text="${equipo.observaciones}">—</td>
-                        </tr>
+                        <tr><th>Préstamo</th><td><span style="color:var(--green);font-weight:600" th:if="${equipo.esPrestamo}">Sí</span><span style="color:var(--muted)" th:unless="${equipo.esPrestamo}">No</span></td></tr>
+                        <tr><th>Cargador</th><td><span th:if="${equipo.incluyeCargador}"><span style="color:var(--green);font-weight:600">Sí</span><span style="font-size:.8rem;color:var(--muted);margin-left:.4rem" th:text="${equipo.cargadorMarca != null ? equipo.cargadorMarca + ' ' + (equipo.cargadorModelo != null ? equipo.cargadorModelo : '') : ''}"></span></span><span style="color:var(--muted)" th:unless="${equipo.incluyeCargador}">No</span></td></tr>
+                        <tr th:if="${equipo.observaciones != null and !equipo.observaciones.isEmpty()}"><th>Observaciones</th><td th:text="${equipo.observaciones}">—</td></tr>
                     </table>
                 </div>
             </div>
 
-            <!-- QR -->
             <div style="display:flex;flex-direction:column;gap:1.4rem">
                 <div class="panel">
-                    <div class="ph2">
-                        <span class="ph2-title">
-                            <span class="ph2-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><path d="M21 16h-3v3M21 21h-2M16 16h.01M16 21h.01M21 19h.01"/></svg></span>
-                            Código QR
-                        </span>
-                    </div>
+                    <div class="ph2"><span class="ph2-title"><span class="ph2-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><path d="M21 16h-3v3M21 21h-2M16 16h.01M16 21h.01M21 19h.01"/></svg></span>Código QR</span></div>
                     <div class="pb">
                         <div class="qr-wrap">
                             <img th:src="'data:image/png;base64,' + ${qrBase64}" alt="QR" class="qr-img"/>
                             <div class="qr-code" th:text="${equipo.codigo}"></div>
                             <div class="qr-actions">
-                                <a th:href="@{/api/equipos/{c}/qr(c=${equipo.codigo})}" class="btn btn-outline" style="justify-content:center">
-                                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                                    Descargar QR
+                                <a th:href="@{/api/equipos/{c}/qr(c=${equipo.codigo})}" class="btn btn-outline" style="justify-content:center"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Descargar QR</a>
+                                <button class="btn btn-gold" style="justify-content:center" onclick="imprimirTicket()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Imprimir etiqueta</button>
+                                <a th:href="@{/equipo/{c}/hoja(c=${equipo.codigo})}" class="btn btn-blue" style="justify-content:center">
+                                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                    Ver hoja de vida
                                 </a>
-                                <button class="btn btn-gold" style="justify-content:center" onclick="imprimirTicket()">
-                                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-                                    Imprimir etiqueta
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -271,114 +306,46 @@
             </div>
         </div>
 
-        <!-- Cambiar propietario -->
+        <!-- Cambiar propietario con confirmación -->
         <div class="panel" id="panelPropietario" style="display:none;">
-            <div class="ph2">
-                <span class="ph2-title">
-                    <span class="ph2-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
-                    Cambiar propietario
-                </span>
-            </div>
+            <div class="ph2"><span class="ph2-title"><span class="ph2-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>Cambiar propietario</span></div>
             <div class="pb">
-                <form th:action="@{/equipos/{c}/propietario(c=${equipo.codigo})}" th:object="${cambioPropietarioDTO}" method="post">
+                <form th:action="@{/equipos/{c}/propietario(c=${equipo.codigo})}" th:object="${cambioPropietarioDTO}" method="post" onsubmit="return confirm('¿Estás seguro de cambiar el propietario? Se actualizará el código si cambia área o cargo.');">
                     <div class="form-row c3">
-                        <div class="fg">
-                            <label>Nuevo responsable</label>
-                            <input type="text" th:field="*{nuevoResponsable}" class="fc" placeholder="Nombre completo"/>
-                        </div>
-                        <div class="fg">
-                            <label>Nuevo cargo</label>
-                            <select th:field="*{nuevoCargo}" class="fc">
-                                <option value="">Seleccionar cargo</option>
-                                <option th:each="c : ${cargos}" th:value="${c}" th:text="${c}"></option>
-                            </select>
-                        </div>
-                        <div class="fg">
-                            <label>Nueva área (opcional)</label>
-                            <select th:field="*{nuevaArea}" class="fc">
-                                <option value="">Mantener área actual</option>
-                                <option th:each="a : ${areas}" th:value="${a}" th:text="${a}"></option>
-                            </select>
-                        </div>
+                        <div class="fg"><label>Nuevo responsable</label><input type="text" th:field="*{nuevoResponsable}" class="fc" placeholder="Nombre completo"/></div>
+                        <div class="fg"><label>Nuevo cargo</label><select th:field="*{nuevoCargo}" class="fc"><option value="">Seleccionar cargo</option><option th:each="c : ${cargos}" th:value="${c}" th:text="${c}"></option></select></div>
+                        <div class="fg"><label>Nueva área (opcional)</label><select th:field="*{nuevaArea}" class="fc"><option value="">Mantener área actual</option><option th:each="a : ${areas}" th:value="${a}" th:text="${a}"></option></select></div>
                     </div>
                     <div class="form-row c2a" style="margin-top:.75rem;padding-top:.75rem;border-top:none">
-                        <div class="fg">
-                            <label>Motivo del cambio</label>
-                            <input type="text" th:field="*{motivo}" class="fc" placeholder="Ej: Rotación de personal, traslado..."/>
-                        </div>
-                        <div class="fg">
-                            <label>Registrado por</label>
-                            <input type="text" th:field="*{ingeniero}" class="fc" placeholder="Nombre del responsable TI"/>
-                        </div>
-                        <button type="submit" class="btn btn-blue" style="align-self:flex-end">
-                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
-                            Actualizar
-                        </button>
+                        <div class="fg"><label>Motivo del cambio</label><input type="text" th:field="*{motivo}" class="fc" placeholder="Ej: Rotación de personal, traslado..."/></div>
+                        <div class="fg"><label>Registrado por</label><input type="text" th:field="*{ingeniero}" class="fc" placeholder="Nombre del responsable TI"/></div>
+                        <button type="submit" class="btn btn-blue" style="align-self:flex-end"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>Actualizar</button>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- Actualizar hardware -->
+        <!-- Actualizar hardware con confirmación -->
         <div class="panel" id="panelHardware" style="display:none;">
-            <div class="ph2">
-                <span class="ph2-title">
-                    <span class="ph2-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6M9 12h6M9 15h4"/></svg></span>
-                    Actualizar hardware / estado físico
-                </span>
-            </div>
+            <div class="ph2"><span class="ph2-title"><span class="ph2-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6M9 12h6M9 15h4"/></svg></span>Actualizar hardware / estado físico</span></div>
             <div class="pb">
-                <form th:action="@{/equipos/{c}/hardware(c=${equipo.codigo})}" th:object="${actualizarHardwareDTO}" method="post">
+                <form th:action="@{/equipos/{c}/hardware(c=${equipo.codigo})}" th:object="${actualizarHardwareDTO}" method="post" onsubmit="return confirm('¿Estás seguro de actualizar el hardware? Se registrará un evento.');">
                     <div class="form-row c4">
-                        <div class="fg">
-                            <label>Nueva RAM</label>
-                            <select th:field="*{ram}" class="fc">
-                                <option value="">Sin cambio</option>
-                                <option th:each="r : ${opcionesRam}" th:value="${r}" th:text="${r}"></option>
-                            </select>
-                        </div>
-                        <div class="fg">
-                            <label>Nuevo disco</label>
-                            <select th:field="*{disco}" class="fc">
-                                <option value="">Sin cambio</option>
-                                <option th:each="d : ${opcionesDisco}" th:value="${d}" th:text="${d}"></option>
-                            </select>
-                        </div>
-                        <div class="fg">
-                            <label>Estado físico</label>
-                            <select th:field="*{estadoFisico}" class="fc">
-                                <option value="">Sin cambio</option>
-                                <option value="Nuevo">Nuevo</option>
-                                <option value="Usado - Bueno">Usado - Bueno</option>
-                                <option value="Usado - Regular">Usado - Regular</option>
-                                <option value="Dañado">Dañado</option>
-                                <option value="Para reparar">Para reparar</option>
-                            </select>
-                        </div>
-                        <div class="fg">
-                            <label>MAC</label>
-                            <input type="text" th:field="*{mac}" class="fc" placeholder="XX:XX:XX:XX:XX:XX"/>
-                        </div>
+                        <div class="fg"><label>Nueva RAM</label><select th:field="*{ram}" class="fc"><option value="">Sin cambio</option><option th:each="r : ${opcionesRam}" th:value="${r}" th:text="${r}"></option></select></div>
+                        <div class="fg"><label>Nuevo disco</label><select th:field="*{disco}" class="fc"><option value="">Sin cambio</option><option th:each="d : ${opcionesDisco}" th:value="${d}" th:text="${d}"></option></select></div>
+                        <div class="fg"><label>Estado físico</label><select th:field="*{estadoFisico}" class="fc"><option value="">Sin cambio</option><option value="Nuevo">Nuevo</option><option value="Usado - Bueno">Usado - Bueno</option><option value="Usado - Regular">Usado - Regular</option><option value="Dañado">Dañado</option><option value="Para reparar">Para reparar</option></select></div>
+                        <div class="fg"><label>MAC</label><input type="text" th:field="*{mac}" class="fc" placeholder="XX:XX:XX:XX:XX:XX"/></div>
                     </div>
                     <div class="form-row c2a" style="margin-top:.75rem;padding-top:.75rem;border-top:none">
-                        <div class="fg">
-                            <label>Descripción del cambio</label>
-                            <input type="text" th:field="*{descripcion}" class="fc" placeholder="Ej: Ampliación de RAM, cambio de disco..."/>
-                        </div>
-                        <div class="fg">
-                            <label>Ingeniero responsable</label>
-                            <input type="text" th:field="*{ingeniero}" class="fc" placeholder="Nombre"/>
-                        </div>
-                        <button type="submit" class="btn btn-gold" style="align-self:flex-end">
-                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-                            Guardar cambio
-                        </button>
+                        <div class="fg"><label>Descripción del cambio</label><input type="text" th:field="*{descripcion}" class="fc" placeholder="Ej: Ampliación de RAM, cambio de disco..."/></div>
+                        <div class="fg"><label>Ingeniero responsable</label><input type="text" th:field="*{ingeniero}" class="fc" placeholder="Nombre"/></div>
+                        <button type="submit" class="btn btn-gold" style="align-self:flex-end"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Guardar cambio</button>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- Periféricos -->
+        <!-- Periféricos asociados (con botón de eliminar) -->
         <th:block th:if="${equipo.perifericos != null and !equipo.perifericos.isEmpty()}">
             <div class="panel">
                 <div class="ph2">
@@ -389,186 +356,128 @@
                 </div>
                 <div class="pb">
                     <div class="perifericos-grid">
-                        <div class="peri-card" th:each="p : ${equipo.perifericos}">
+                        <div class="peri-card" th:each="p, iterStat : ${equipo.perifericos}">
                             <div class="peri-tipo" th:text="${p.tipo}">—</div>
                             <div class="peri-marca" th:text="${(p.marca != null ? p.marca : '') + ' ' + (p.modelo != null ? p.modelo : '')}">—</div>
                             <div class="peri-serial" th:if="${p.serial != null and !p.serial.isEmpty()}" th:text="'S/N: ' + ${p.serial}">—</div>
+                            <button type="button" class="btn-remove-peri" th:data-index="${iterStat.index}" th:data-tipo="${p.tipo}" th:data-marca="${p.marca}" th:data-serial="${p.serial}" onclick="abrirModalEliminarPeriferico(this, '${equipo.codigo}', ${iterStat.index})">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
         </th:block>
 
-        <!-- Historial -->
         <div class="panel">
-            <div class="ph2">
-                <span class="ph2-title">
-                    <span class="ph2-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
-                    Historial de eventos
-                </span>
-            </div>
+            <div class="ph2"><span class="ph2-title"><span class="ph2-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>Historial de eventos</span></div>
             <div class="pb">
                 <p th:if="${equipo.historial == null or equipo.historial.isEmpty()}" class="empty-h">Sin eventos registrados.</p>
                 <th:block th:unless="${equipo.historial == null or equipo.historial.isEmpty()}">
-                    <table class="hist-tbl">
-                        <thead><tr><th>Fecha</th><th>Tipo</th><th>Evento</th><th>Ingeniero</th></tr></thead>
-                        <tbody>
-                        <tr th:each="ev : ${equipo.historial}">
-                            <td th:text="${ev.fecha}">—</td>
-                            <td>
-                                <span class="hist-tipo ht-cambio" th:if="${ev.tipo == 'CAMBIO_PROPIETARIO'}">Propietario</span>
-                                <span class="hist-tipo ht-hardware" th:if="${ev.tipo == 'HARDWARE'}">Hardware</span>
-                                <span class="hist-tipo ht-mantenimiento" th:if="${ev.tipo == 'MANTENIMIENTO'}">Mantenimiento</span>
-                                <span class="hist-tipo ht-estado" th:if="${ev.tipo == 'ESTADO'}">Estado</span>
-                                <span class="hist-tipo ht-general" th:if="${ev.tipo == null or ev.tipo == 'GENERAL'}">General</span>
-                            </td>
-                            <td th:text="${ev.evento}">—</td>
-                            <td th:text="${ev.ingeniero}">—</td>
-                        </tr>
-                        </tbody>
+                    <table class="hist-tbl"><thead><tr><th>Fecha</th><th>Tipo</th><th>Evento</th><th>Ingeniero</th></thead>
+                        <tbody><tr th:each="ev : ${equipo.historial}"><td th:text="${ev.fecha}">—</td><td><span class="hist-tipo ht-cambio" th:if="${ev.tipo == 'CAMBIO_PROPIETARIO'}">Propietario</span><span class="hist-tipo ht-hardware" th:if="${ev.tipo == 'HARDWARE'}">Hardware</span><span class="hist-tipo ht-mantenimiento" th:if="${ev.tipo == 'MANTENIMIENTO'}">Mantenimiento</span><span class="hist-tipo ht-estado" th:if="${ev.tipo == 'ESTADO'}">Estado</span><span class="hist-tipo ht-general" th:if="${ev.tipo == null or ev.tipo == 'GENERAL'}">General</span></td><td th:text="${ev.evento}">—</td><td th:text="${ev.ingeniero}">—</td></tr></tbody>
                     </table>
                 </th:block>
-
                 <form th:action="@{/equipos/{c}/historial(c=${equipo.codigo})}" th:object="${historialDTO}" method="post">
-                    <div class="form-row c2a">
-                        <div class="fg">
-                            <label>Descripción del evento</label>
-                            <input type="text" th:field="*{evento}" class="fc" placeholder="Ej: Revisión preventiva, cambio de teclado..."/>
-                        </div>
-                        <div class="fg">
-                            <label>Ingeniero</label>
-                            <input type="text" th:field="*{ingeniero}" class="fc" placeholder="Nombre"/>
-                        </div>
-                        <button type="submit" class="btn btn-gold" style="align-self:flex-end">
-                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
-                            Agregar
-                        </button>
-                    </div>
+                    <div class="form-row c2a"><div class="fg"><label>Descripción del evento</label><input type="text" th:field="*{evento}" class="fc" placeholder="Ej: Revisión preventiva, cambio de teclado..."/></div><div class="fg"><label>Ingeniero</label><input type="text" th:field="*{ingeniero}" class="fc" placeholder="Nombre"/></div><button type="submit" class="btn btn-gold" style="align-self:flex-end"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>Agregar</button></div>
                 </form>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Ticket impresión -->
-<div id="ticketPrint">
-    <div class="ticket-inner">
-        <img src="/img/logo.png" alt="Mardique" class="ticket-logo-img"/>
-        <div class="ticket-logo-text">Mardique — Inventario TI</div>
-        <div style="border-top:1px solid #ccc;margin:.3rem 0"></div>
-        <div class="ticket-code" th:text="${equipo.codigo}"></div>
-        <img th:src="'data:image/png;base64,' + ${qrBase64}" class="ticket-qr" alt="QR"/>
-        <div class="ticket-info">
-            <div th:text="${equipo.area}"></div>
-            <div th:if="${equipo.marca != null}" th:text="${equipo.marca} + ' ' + (${equipo.modelo} != null ? ${equipo.modelo} : '')"></div>
-        </div>
-    </div>
-</div>
+<div id="ticketPrint"><div class="ticket-inner"><img src="/img/logo.png" alt="Mardique" class="ticket-logo-img"/><div class="ticket-logo-text">Mardique — Inventario TI</div><div style="border-top:1px solid #ccc;margin:.3rem 0"></div><div class="ticket-code" th:text="${equipo.codigo}"></div><img th:src="'data:image/png;base64,' + ${qrBase64}" class="ticket-qr" alt="QR"/><div class="ticket-info"><div th:text="${equipo.area != null ? equipo.area : 'Sin asignar'}"></div><div th:if="${equipo.marca != null}" th:text="${equipo.marca} + ' ' + (${equipo.modelo} != null ? ${equipo.modelo} : '')"></div></div></div></div>
 
-<!-- Modal de confirmación genérico (sin campo de texto) - ya no se usa para esos 3, pero se mantiene para hardware/propietario -->
-<div id="modalConfirmSimple" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
-    <div style="background:white;border-radius:12px;padding:2rem;max-width:400px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,0.2);">
-        <p id="modalConfirmSimpleMsg" style="font-size:1rem;margin-bottom:1.5rem;color:var(--text);"></p>
-        <div style="display:flex;gap:1rem;justify-content:center;">
-            <button id="modalConfirmSimpleYes" class="btn btn-gold">Confirmar</button>
-            <button id="modalConfirmSimpleNo" class="btn btn-outline">Cancelar</button>
-        </div>
-    </div>
-</div>
-
-<!-- Modal con campo de texto (para stock, baja, mantenimiento) -->
-<div id="modalMotivo" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
-    <div style="background:white;border-radius:12px;padding:2rem;max-width:450px;width:90%;box-shadow:0 10px 30px rgba(0,0,0,0.2);">
-        <h3 id="modalMotivoTitulo" style="font-size:1.1rem;font-weight:700;margin-bottom:1rem;">Motivo</h3>
-        <textarea id="modalMotivoTexto" style="width:100%;padding:.5rem;border:1px solid var(--border);border-radius:8px;font-size:.86rem;resize:vertical;min-height:80px;" placeholder="Escriba el motivo..."></textarea>
-        <div style="display:flex;gap:1rem;justify-content:flex-end;margin-top:1.5rem;">
-            <button onclick="cerrarModalMotivo()" class="btn btn-outline">Cancelar</button>
-            <button id="modalMotivoConfirmar" class="btn btn-gold">Confirmar</button>
-        </div>
-    </div>
-</div>
+<!-- Modal unificado para motivo (stock, baja, mantenimiento, eliminar periférico) -->
+<div id="modalMotivo" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;"><div style="background:white;border-radius:12px;padding:2rem;max-width:450px;width:90%;box-shadow:0 10px 30px rgba(0,0,0,0.2);"><h3 id="modalMotivoTitulo" style="font-size:1.1rem;font-weight:700;margin-bottom:1rem;">Motivo</h3><textarea id="modalMotivoTexto" style="width:100%;padding:.5rem;border:1px solid var(--border);border-radius:8px;font-size:.86rem;resize:vertical;min-height:80px;" placeholder="Escriba el motivo..."></textarea><div style="display:flex;gap:1rem;justify-content:flex-end;margin-top:1.5rem;"><button onclick="cerrarModalMotivo()" class="btn btn-outline">Cancelar</button><button id="modalMotivoConfirmar" class="btn btn-gold">Confirmar</button></div></div></div>
 
 <script>
-    // Variables para el modal con motivo
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const main = document.getElementById('main');
+    menuToggle.addEventListener('click', () => { if(window.innerWidth <= 768) sidebar.classList.toggle('collapsed'); else { sidebar.classList.toggle('collapsed'); main.classList.toggle('full'); } });
+
     let currentTargetInputId = null;
     let currentFormId = null;
+    let currentPerifericoIndex = null;
+    let currentEquipoCodigo = null;
 
-    function abrirModalMotivo(modalId, targetInputId) {
-        // modalId no se usa, siempre usamos 'modalMotivo'
+    function abrirModalMotivo(targetInputId) {
         const modal = document.getElementById('modalMotivo');
         const titulo = document.getElementById('modalMotivoTitulo');
-        const texto = document.getElementById('modalMotivoTexto');
-
-        // Determinar título según el botón (stock, baja, mantenimiento)
-        if (targetInputId === 'motivoStock') {
-            titulo.textContent = 'Motivo para poner en stock';
-            currentFormId = 'formStock';
-        } else if (targetInputId === 'motivoBaja') {
-            titulo.textContent = 'Motivo para dar de baja';
-            currentFormId = 'formBaja';
-        } else if (targetInputId === 'motivoMantenimiento') {
-            titulo.textContent = 'Motivo para enviar a mantenimiento';
-            currentFormId = 'formMantenimiento';
-        }
+        if (targetInputId === 'motivoStock') { titulo.textContent = 'Motivo para poner en stock'; currentFormId = 'formStock'; }
+        else if (targetInputId === 'motivoBaja') { titulo.textContent = 'Motivo para dar de baja'; currentFormId = 'formBaja'; }
+        else if (targetInputId === 'motivoMantenimiento') { titulo.textContent = 'Motivo para enviar a mantenimiento'; currentFormId = 'formMantenimiento'; }
         currentTargetInputId = targetInputId;
-        texto.value = '';
+        document.getElementById('modalMotivoTexto').value = '';
         modal.style.display = 'flex';
-        texto.focus();
+    }
+
+    function abrirModalEliminarPeriferico(btn, codigo, index) {
+        currentEquipoCodigo = codigo;
+        currentPerifericoIndex = index;
+        const tipo = btn.getAttribute('data-tipo');
+        const marca = btn.getAttribute('data-marca');
+        const serial = btn.getAttribute('data-serial');
+        const titulo = document.getElementById('modalMotivoTitulo');
+        titulo.textContent = `Eliminar periférico: ${tipo} - ${marca || 'sin marca'} (Serial: ${serial || 'N/A'})`;
+        document.getElementById('modalMotivoTexto').value = '';
+        document.getElementById('modalMotivo').style.display = 'flex';
     }
 
     function cerrarModalMotivo() {
         document.getElementById('modalMotivo').style.display = 'none';
         currentTargetInputId = null;
         currentFormId = null;
+        currentPerifericoIndex = null;
+        currentEquipoCodigo = null;
     }
 
     document.getElementById('modalMotivoConfirmar').addEventListener('click', function() {
         const motivo = document.getElementById('modalMotivoTexto').value.trim();
-        if (!motivo) {
-            alert('Debe escribir un motivo.');
+        if (!motivo) { alert('Debe escribir un motivo.'); return; }
+
+        if (currentPerifericoIndex !== null && currentEquipoCodigo !== null) {
+            // Obtener token CSRF desde el formulario de logout
+            const csrfToken = document.querySelector('form[action*="/logout"] input[name="_csrf"]').value;
+            const csrfHeader = 'X-CSRF-TOKEN';
+
+            fetch(`/equipos/${currentEquipoCodigo}/periferico/${currentPerifericoIndex}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    [csrfHeader]: csrfToken
+                },
+                body: `motivo=${encodeURIComponent(motivo)}`
+            }).then(response => {
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Error al eliminar el periférico. Código: ' + response.status);
+                }
+            }).catch(error => {
+                console.error('Error:', error);
+                alert('Error de conexión: ' + error.message);
+            });
+            cerrarModalMotivo();
             return;
         }
-        // Asignar el motivo al input hidden correspondiente
-        if (currentTargetInputId) {
-            document.getElementById(currentTargetInputId).value = motivo;
-        }
-        // Enviar el formulario
-        if (currentFormId) {
-            document.getElementById(currentFormId).submit();
-        }
+
+        if (currentTargetInputId) document.getElementById(currentTargetInputId).value = motivo;
+        if (currentFormId) document.getElementById(currentFormId).submit();
         cerrarModalMotivo();
     });
 
-    // Cerrar modal al hacer clic fuera
     document.getElementById('modalMotivo').addEventListener('click', function(e) {
         if (e.target === this) cerrarModalMotivo();
     });
 
-    // Funciones existentes
     function imprimirTicket() {
         var el = document.getElementById('ticketPrint');
         el.style.cssText = 'display:flex;align-items:center;justify-content:center;position:fixed;inset:0;background:#fff;z-index:9999';
         window.print();
         el.style.display = 'none';
     }
-
-    // Modal simple (para futuros usos, actualmente no se usa)
-    window.modalConfirm = function(mensaje, callback) {
-        const modal = document.getElementById('modalConfirmSimple');
-        document.getElementById('modalConfirmSimpleMsg').textContent = mensaje;
-        modal.style.display = 'flex';
-        document.getElementById('modalConfirmSimpleYes').onclick = function() {
-            modal.style.display = 'none';
-            callback(true);
-        };
-        document.getElementById('modalConfirmSimpleNo').onclick = function() {
-            modal.style.display = 'none';
-            callback(false);
-        };
-    };
-    document.getElementById('modalConfirmSimple').addEventListener('click', function(e) {
-        if (e.target === this) this.style.display = 'none';
-    });
 </script>
 </body>
 </html>

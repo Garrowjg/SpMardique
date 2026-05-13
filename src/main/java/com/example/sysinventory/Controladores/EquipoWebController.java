@@ -14,6 +14,10 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 
 import java.io.IOException;
 import java.util.*;
@@ -26,7 +30,6 @@ public class EquipoWebController {
     private final GraphService graphService;
     private final TokenService tokenService;
 
-    // Constructor único que inyecta los tres servicios
     public EquipoWebController(EquipoService equipoService,
                                GraphService graphService,
                                TokenService tokenService) {
@@ -35,7 +38,35 @@ public class EquipoWebController {
         this.tokenService = tokenService;
     }
 
-    // ── Redirección QR → Hoja de vida (Graph API) ─────────────────────────
+    // ================= UTILIDAD =================
+    private void agregarDatosUsuario(Model model) {
+        String userName = "Usuario";
+        String userEmail = "";
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken)) {
+            Object principal = auth.getPrincipal();
+            if (principal instanceof OAuth2User) {
+                OAuth2User oauth2User = (OAuth2User) principal;
+                String nombre = oauth2User.getAttribute("name");
+                if (nombre == null || nombre.isBlank()) {
+                    nombre = oauth2User.getAttribute("given_name");
+                    String apellido = oauth2User.getAttribute("family_name");
+                    if (nombre != null && apellido != null) nombre = nombre + " " + apellido;
+                }
+                if (nombre == null || nombre.isBlank()) {
+                    nombre = oauth2User.getAttribute("preferred_username");
+                }
+                userName = (nombre != null && !nombre.isBlank()) ? nombre : "Usuario";
+                userEmail = oauth2User.getAttribute("email") != null ? oauth2User.getAttribute("email") : "";
+            } else {
+                userName = auth.getName();
+            }
+        }
+        model.addAttribute("userName", userName);
+        model.addAttribute("userEmail", userEmail);
+    }
+
+    // ================= REDIRECCIONES =================
     @GetMapping("/redirect/{codigo}")
     public String redirigirAExcel(@PathVariable String codigo) {
         Equipo equipo = equipoService.buscarPorCodigo(codigo);
@@ -43,42 +74,38 @@ public class EquipoWebController {
         return "redirect:/equipo/" + codigo + "/hoja";
     }
 
-    // ── Hoja de vida del equipo (lectura desde Excel con Graph API) ─────────
     @GetMapping("/equipo/{codigo}/hoja")
     public String hojaVida(@PathVariable String codigo,
                            HttpSession session,
                            Model model) {
-        // 1. Obtener token de la sesión (primero del TokenService, luego del HttpSession)
+        agregarDatosUsuario(model);
+
         String token = tokenService.getAccessToken();
         if (token == null) {
             token = (String) session.getAttribute("accessToken");
             if (token == null) {
                 return "redirect:/auth/login";
             }
-            tokenService.setAccessToken(token); // sincronizar
+            tokenService.setAccessToken(token);
         }
 
-        // 2. Buscar equipo por código
         Equipo equipo = equipoService.buscarPorCodigo(codigo);
         if (equipo == null) {
             return "redirect:/equipos";
         }
 
-        // 3. Leer datos del Excel usando Graph API (pasamos el token)
-        Map<String, String> datosExcel = new LinkedHashMap<>();
-        if (equipo.getSerial() != null && !equipo.getSerial().isBlank()) {
-            datosExcel = graphService.leerHojaEquipo(equipo.getSerial().trim(), token);
-        } else {
-            datosExcel.put("error", "Este equipo no tiene serial registrado.");
+        String serial = equipo.getSerial() != null ? equipo.getSerial().trim() : "";
+        String embedUrl = "";
+        if (!serial.isBlank()) {
+            embedUrl = graphService.obtenerEmbedUrl(serial, token);
         }
 
-        // 4. Pasar datos a la vista
         model.addAttribute("equipo", equipo);
-        model.addAttribute("datosExcel", datosExcel);
+        model.addAttribute("excelEmbedUrl", embedUrl);
         return "equipos/hoja";
     }
 
-    // ── Dashboard ─────────────────────────────────────────────────────────
+    // ================= DASHBOARD =================
     @GetMapping("/")
     public String dashboard(Model model) {
         List<Equipo> equipos = equipoService.listarTodos();
@@ -87,7 +114,6 @@ public class EquipoWebController {
         long mantenimiento = equipos.stream().filter(e -> "En mantenimiento".equals(e.getEstado())).count();
         long baja          = equipos.stream().filter(e -> "Dado de baja".equals(e.getEstado())).count();
 
-        // Tabla de áreas (HTML directo con clase "clean")
         Map<String, List<Equipo>> porArea = equipos.stream()
                 .filter(e -> e.getArea() != null && !e.getArea().isBlank())
                 .collect(Collectors.groupingBy(Equipo::getArea));
@@ -110,9 +136,9 @@ public class EquipoWebController {
                     .append("<td>").append(b).append("</td>")
                     .append("</tr>");
         }
-        areasHtml.append("</tbody></table>");
+        areasHtml.append("</tbody>");
+        areasHtml.append("<table>");
 
-        // Barras de distribución (gráfico CSS)
         StringBuilder barrasHtml = new StringBuilder();
         long total = activos + mantenimiento + baja;
         if (total > 0) {
@@ -128,7 +154,6 @@ public class EquipoWebController {
             barrasHtml.append("<p style='color:var(--muted);'>Sin datos de distribución.</p>");
         }
 
-        // Últimos registros (tarjetas simples)
         List<Equipo> ultimos = equipos.stream()
                 .filter(e -> e.getId() != null)
                 .sorted(Comparator.comparing(Equipo::getId).reversed())
@@ -149,6 +174,7 @@ public class EquipoWebController {
         }
         ultimosHtml.append("</div>");
 
+        agregarDatosUsuario(model);
         model.addAttribute("totalEquipos", equipos.size());
         model.addAttribute("activos", activos);
         model.addAttribute("enMantenimiento", mantenimiento);
@@ -156,10 +182,11 @@ public class EquipoWebController {
         model.addAttribute("areasHtml", areasHtml.toString());
         model.addAttribute("barrasHtml", barrasHtml.toString());
         model.addAttribute("ultimosHtml", ultimosHtml.toString());
+
         return "dashboard";
     }
 
-    // ── Lista equipos (con atributos data- para filtros) ──────────────────
+    // ================= LISTA DE EQUIPOS =================
     @GetMapping("/equipos")
     public String listar(Model model) {
         List<Equipo> equipos = equipoService.listarTodos();
@@ -186,17 +213,20 @@ public class EquipoWebController {
             tablaHtml.append("<td>").append(serial).append("</td>");
             tablaHtml.append("<td>").append(estado).append("</td>");
             tablaHtml.append("<td><a href='/equipo/").append(codigo).append("' style='color:var(--blue);text-decoration:none;font-weight:500'>Ver ficha</a></td>");
-            tablaHtml.append("</tr>");
+            tablaHtml.append("<tr>");
         }
-        tablaHtml.append("</tbody></table>");
+        tablaHtml.append("</tbody>");
+        tablaHtml.append("</table>");
 
+        agregarDatosUsuario(model);
         model.addAttribute("tablaEquipos", tablaHtml.toString());
         return "equipos/lista";
     }
 
-    // ── Formulario nuevo ──────────────────────────────────────────────────
+    // ================= FORMULARIO NUEVO =================
     @GetMapping("/equipos/nuevo")
     public String formularioNuevo(Model model) {
+        agregarDatosUsuario(model);
         model.addAttribute("equipoDTO", new EquipoRequestDTO());
         model.addAttribute("areas", CodigoGenerador.getAreas().keySet().stream().sorted().collect(Collectors.toList()));
         model.addAttribute("cargos", CodigoGenerador.getCargos().keySet().stream().sorted().collect(Collectors.toList()));
@@ -211,6 +241,7 @@ public class EquipoWebController {
                           BindingResult result, Model model,
                           RedirectAttributes redirectAttrs) {
         if (result.hasErrors()) {
+            agregarDatosUsuario(model);
             model.addAttribute("areas", CodigoGenerador.getAreas().keySet().stream().sorted().collect(Collectors.toList()));
             model.addAttribute("cargos", CodigoGenerador.getCargos().keySet().stream().sorted().collect(Collectors.toList()));
             model.addAttribute("marcasModelos", CodigoGenerador.getMarcasModelos());
@@ -224,6 +255,7 @@ public class EquipoWebController {
             return "redirect:/equipo/" + creado.getCodigo();
         } catch (RuntimeException e) {
             result.rejectValue("area", "error.equipo", e.getMessage());
+            agregarDatosUsuario(model);
             model.addAttribute("areas", CodigoGenerador.getAreas().keySet().stream().sorted().collect(Collectors.toList()));
             model.addAttribute("cargos", CodigoGenerador.getCargos().keySet().stream().sorted().collect(Collectors.toList()));
             model.addAttribute("marcasModelos", CodigoGenerador.getMarcasModelos());
@@ -233,11 +265,12 @@ public class EquipoWebController {
         }
     }
 
-    // ── Ficha equipo ──────────────────────────────────────────────────────
+    // ================= FICHA DEL EQUIPO =================
     @GetMapping("/equipo/{codigo}")
     public String ficha(@PathVariable String codigo, Model model) throws WriterException, IOException {
         Equipo equipo = equipoService.buscarPorCodigo(codigo);
         String qrBase64 = equipoService.obtenerQRBase64(codigo);
+        agregarDatosUsuario(model);
         model.addAttribute("equipo", equipo);
         model.addAttribute("qrBase64", qrBase64);
         model.addAttribute("historialDTO", new HistorialEventoDTO());
@@ -250,63 +283,75 @@ public class EquipoWebController {
         return "equipos/ficha";
     }
 
-    // ── Cambiar propietario ───────────────────────────────────────────────
+    // ================= ACCIONES SOBRE EQUIPOS =================
+    // CORREGIDO: capturar el equipo actualizado y redirigir con su nuevo código
     @PostMapping("/equipos/{codigo}/propietario")
     public String cambiarPropietario(@PathVariable String codigo,
                                      @ModelAttribute("cambioPropietarioDTO") CambioPropietarioDTO dto,
                                      RedirectAttributes redirectAttrs) {
-        equipoService.cambiarPropietario(codigo, dto);
+        Equipo equipoActualizado = equipoService.cambiarPropietario(codigo, dto);
         redirectAttrs.addFlashAttribute("mensaje", "Propietario actualizado correctamente");
-        return "redirect:/equipo/" + codigo;
+        return "redirect:/equipo/" + equipoActualizado.getCodigo();
     }
 
-    // ── Actualizar hardware ───────────────────────────────────────────────
     @PostMapping("/equipos/{codigo}/hardware")
     public String actualizarHardware(@PathVariable String codigo,
                                      @ModelAttribute("actualizarHardwareDTO") ActualizarHardwareDTO dto,
                                      RedirectAttributes redirectAttrs) {
-        equipoService.actualizarHardware(codigo, dto);
+        Equipo equipoActualizado = equipoService.actualizarHardware(codigo, dto);
         redirectAttrs.addFlashAttribute("mensaje", "Hardware actualizado correctamente");
-        return "redirect:/equipo/" + codigo;
+        return "redirect:/equipo/" + equipoActualizado.getCodigo();
     }
 
-    // ── Historial manual ──────────────────────────────────────────────────
     @PostMapping("/equipos/{codigo}/historial")
     public String agregarHistorial(@PathVariable String codigo,
                                    @Valid @ModelAttribute("historialDTO") HistorialEventoDTO dto,
                                    RedirectAttributes redirectAttrs) {
-        equipoService.agregarHistorial(codigo, dto);
+        Equipo equipoActualizado = equipoService.agregarHistorial(codigo, dto);
         redirectAttrs.addFlashAttribute("mensaje", "Evento agregado al historial");
-        return "redirect:/equipo/" + codigo;
+        return "redirect:/equipo/" + equipoActualizado.getCodigo();
     }
 
-    // ── Estados ───────────────────────────────────────────────────────────
     @PostMapping("/equipos/{codigo}/baja")
-    public String darDeBaja(@PathVariable String codigo, RedirectAttributes redirectAttrs) {
-        equipoService.darDeBaja(codigo);
+    public String darDeBaja(@PathVariable String codigo,
+                            @RequestParam(required = false) String motivo,
+                            RedirectAttributes redirectAttrs) {
+        Equipo equipoActualizado = equipoService.darDeBaja(codigo, motivo);
         redirectAttrs.addFlashAttribute("mensaje", "Equipo dado de baja correctamente");
-        return "redirect:/equipo/" + codigo;
+        return "redirect:/equipo/" + equipoActualizado.getCodigo();
     }
 
     @PostMapping("/equipos/{codigo}/mantenimiento")
-    public String ponerEnMantenimiento(@PathVariable String codigo, RedirectAttributes redirectAttrs) {
-        equipoService.ponerEnMantenimiento(codigo);
+    public String ponerEnMantenimiento(@PathVariable String codigo,
+                                       @RequestParam(required = false) String motivo,
+                                       RedirectAttributes redirectAttrs) {
+        Equipo equipoActualizado = equipoService.ponerEnMantenimiento(codigo, motivo);
         redirectAttrs.addFlashAttribute("mensaje", "Equipo enviado a mantenimiento");
-        return "redirect:/equipo/" + codigo;
+        return "redirect:/equipo/" + equipoActualizado.getCodigo();
     }
 
     @PostMapping("/equipos/{codigo}/activar")
     public String activar(@PathVariable String codigo, RedirectAttributes redirectAttrs) {
-        equipoService.activarEquipo(codigo);
+        Equipo equipoActualizado = equipoService.activarEquipo(codigo);
         redirectAttrs.addFlashAttribute("mensaje", "Equipo marcado como activo");
-        return "redirect:/equipo/" + codigo;
+        return "redirect:/equipo/" + equipoActualizado.getCodigo();
     }
 
-    // Endpoint para enviar a stock
     @PostMapping("/equipos/{codigo}/stock")
-    public String ponerEnStock(@PathVariable String codigo, RedirectAttributes redirectAttrs) {
-        equipoService.ponerEnStock(codigo);
+    public String ponerEnStock(@PathVariable String codigo,
+                               @RequestParam(required = false) String motivo,
+                               RedirectAttributes redirectAttrs) {
+        Equipo equipoActualizado = equipoService.ponerEnStock(codigo, motivo);
         redirectAttrs.addFlashAttribute("mensaje", "Equipo puesto en stock");
+        return "redirect:/equipo/" + equipoActualizado.getCodigo();
+    }
+    @PostMapping("/equipos/{codigo}/periferico/{index}")
+    public String eliminarPeriferico(@PathVariable String codigo,
+                                     @PathVariable int index,
+                                     @RequestParam String motivo,
+                                     RedirectAttributes redirectAttrs) {
+        equipoService.eliminarPeriferico(codigo, index, motivo);
+        redirectAttrs.addFlashAttribute("mensaje", "Periférico eliminado correctamente");
         return "redirect:/equipo/" + codigo;
     }
 }

@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class EquipoService {
@@ -30,7 +31,6 @@ public class EquipoService {
         this.qrGenerador      = qrGenerador;
     }
 
-    // ── Listar / buscar ───────────────────────────────────────────────────
     public List<Equipo> listarTodos() {
         List<Equipo> lista = equipoRepository.findAll();
         return lista != null ? lista : new ArrayList<>();
@@ -49,7 +49,6 @@ public class EquipoService {
         return equipoRepository.findByEstado(estado);
     }
 
-    // ── Crear ─────────────────────────────────────────────────────────────
     public Equipo crear(EquipoRequestDTO dto) {
         // Verificar si ya existe un equipo con la misma área y cargo
         List<Equipo> existentes = equipoRepository.findByAreaAndCargo(dto.getArea(), dto.getCargo());
@@ -81,7 +80,6 @@ public class EquipoService {
         equipo.setCargadorModelo(dto.getCargadorModelo());
         equipo.setCargadorSerial(dto.getCargadorSerial());
 
-        // Periféricos
         List<Periferico> perifericos = new ArrayList<>();
         if (dto.getPerifericos() != null) {
             for (PerifericoDTO p : dto.getPerifericos()) {
@@ -97,13 +95,11 @@ public class EquipoService {
         }
         equipo.setPerifericos(perifericos);
 
-        // Historial inicial
         equipo.getHistorial().add(nuevoEvento("Registro inicial del equipo", "Sistema", "GENERAL"));
 
         return equipoRepository.save(equipo);
     }
 
-    // ── Actualizar datos básicos ──────────────────────────────────────────
     public Equipo actualizar(String codigo, EquipoRequestDTO dto) {
         Equipo equipo = buscarPorCodigo(codigo);
         equipo.setResponsable(dto.getResponsable());
@@ -142,28 +138,43 @@ public class EquipoService {
         return equipoRepository.save(equipo);
     }
 
-    // ── Cambiar propietario ───────────────────────────────────────────────
     public Equipo cambiarPropietario(String codigo, CambioPropietarioDTO dto) {
         Equipo equipo = buscarPorCodigo(codigo);
         String propietarioAnterior = equipo.getResponsable();
         String cargoAnterior = equipo.getCargo();
+        String areaAnterior = equipo.getArea();
+
+        boolean areaCambio = (dto.getNuevaArea() != null && !dto.getNuevaArea().isBlank() && !dto.getNuevaArea().equals(areaAnterior));
+        boolean cargoCambio = (dto.getNuevoCargo() != null && !dto.getNuevoCargo().isBlank() && !dto.getNuevoCargo().equals(cargoAnterior));
 
         equipo.setResponsable(dto.getNuevoResponsable());
         equipo.setCargo(dto.getNuevoCargo());
-        if (dto.getNuevaArea() != null && !dto.getNuevaArea().isBlank()) {
+        if (areaCambio) {
             equipo.setArea(dto.getNuevaArea());
+        }
+
+        // Si cambió área o cargo, regenerar el código
+        if (areaCambio || cargoCambio) {
+            String nuevoCodigo = codigoGenerador.regenerarCodigo(equipo.getArea(), equipo.getCargo());
+            equipo.setCodigo(nuevoCodigo);
         }
 
         String descripcion = "Cambio de propietario: " + propietarioAnterior + " (" + cargoAnterior + ")"
                 + " → " + dto.getNuevoResponsable() + " (" + dto.getNuevoCargo() + ")"
                 + (dto.getMotivo() != null && !dto.getMotivo().isBlank() ? " | Motivo: " + dto.getMotivo() : "");
+        if (areaCambio) {
+            descripcion += " | Área: " + areaAnterior + " → " + dto.getNuevaArea();
+        }
+        if (cargoCambio) {
+            descripcion += " | Cargo: " + cargoAnterior + " → " + dto.getNuevoCargo();
+        }
+
         String ing = dto.getIngeniero() != null && !dto.getIngeniero().isBlank() ? dto.getIngeniero() : "Sistema";
         equipo.getHistorial().add(nuevoEvento(descripcion, ing, "CAMBIO_PROPIETARIO"));
 
         return equipoRepository.save(equipo);
     }
 
-    // ── Actualizar hardware ───────────────────────────────────────────────
     public Equipo actualizarHardware(String codigo, ActualizarHardwareDTO dto) {
         Equipo equipo = buscarPorCodigo(codigo);
         StringBuilder cambios = new StringBuilder("Actualización de hardware:");
@@ -194,18 +205,14 @@ public class EquipoService {
         return equipoRepository.save(equipo);
     }
 
-    // ── Estados operativos ────────────────────────────────────────────────
-    public Equipo darDeBaja(String codigo) {
-        Equipo equipo = buscarPorCodigo(codigo);
-        equipo.setEstado("Dado de baja");
-        equipo.getHistorial().add(nuevoEvento("Equipo dado de baja", "Sistema", "ESTADO"));
-        return equipoRepository.save(equipo);
-    }
-
-    public Equipo ponerEnMantenimiento(String codigo) {
+    // MODIFICADO: acepta motivo y registra persona anterior
+    public Equipo ponerEnMantenimiento(String codigo, String motivo) {
         Equipo equipo = buscarPorCodigo(codigo);
         equipo.setEstado("En mantenimiento");
-        equipo.getHistorial().add(nuevoEvento("Equipo enviado a mantenimiento", "Sistema", "MANTENIMIENTO"));
+        String evento = "Equipo enviado a mantenimiento. Responsable anterior: " + (equipo.getResponsable() != null ? equipo.getResponsable() : "Desconocido")
+                + ", Área: " + (equipo.getArea() != null ? equipo.getArea() : "Sin asignar")
+                + (motivo != null && !motivo.isBlank() ? " | Motivo: " + motivo : "");
+        equipo.getHistorial().add(nuevoEvento(evento, "Sistema", "MANTENIMIENTO"));
         return equipoRepository.save(equipo);
     }
 
@@ -216,15 +223,62 @@ public class EquipoService {
         return equipoRepository.save(equipo);
     }
 
-    // NUEVO: poner en stock (equipo sin dueño)
-    public Equipo ponerEnStock(String codigo) {
+    // MODIFICADO: acepta motivo y registra persona anterior
+    public Equipo ponerEnStock(String codigo, String motivo) {
         Equipo equipo = buscarPorCodigo(codigo);
+        String responsableAnterior = equipo.getResponsable() != null ? equipo.getResponsable() : "Desconocido";
+        String areaAnterior = equipo.getArea() != null ? equipo.getArea() : "Sin asignar";
+        String cargoAnterior = equipo.getCargo() != null ? equipo.getCargo() : "Sin asignar";
+
+        String nuevoCodigo = generarCodigoEspecial("STOCK");
+        equipo.setCodigo(nuevoCodigo);
+
+        equipo.setArea(null);
+        equipo.setCargo(null);
+        equipo.setResponsable(null);
+        equipo.setFechaEntrega(null);
+        equipo.setEsPrestamo(false);
+        equipo.setObservaciones("Equipo en stock - " + (equipo.getObservaciones() != null ? equipo.getObservaciones() : ""));
+
         equipo.setEstado("En stock");
-        equipo.getHistorial().add(nuevoEvento("Equipo puesto en stock", "Sistema", "ESTADO"));
+
+        String evento = "Equipo puesto en stock. Código anterior: " + codigo
+                + ". Responsable anterior: " + responsableAnterior
+                + ", Área: " + areaAnterior + ", Cargo: " + cargoAnterior
+                + (motivo != null && !motivo.isBlank() ? " | Motivo: " + motivo : "");
+        equipo.getHistorial().add(nuevoEvento(evento, "Sistema", "ESTADO"));
+
         return equipoRepository.save(equipo);
     }
 
-    // ── Historial manual ──────────────────────────────────────────────────
+    // MODIFICADO: acepta motivo y registra persona anterior
+    public Equipo darDeBaja(String codigo, String motivo) {
+        Equipo equipo = buscarPorCodigo(codigo);
+        String responsableAnterior = equipo.getResponsable() != null ? equipo.getResponsable() : "Desconocido";
+        String areaAnterior = equipo.getArea() != null ? equipo.getArea() : "Sin asignar";
+        String cargoAnterior = equipo.getCargo() != null ? equipo.getCargo() : "Sin asignar";
+
+        String nuevoCodigo = generarCodigoEspecial("BAJA");
+        equipo.setCodigo(nuevoCodigo);
+
+        equipo.setArea(null);
+        equipo.setCargo(null);
+        equipo.setResponsable(null);
+        equipo.setFechaEntrega(null);
+        equipo.setEsPrestamo(false);
+        equipo.setObservaciones("Equipo dado de baja - " + (equipo.getObservaciones() != null ? equipo.getObservaciones() : ""));
+
+        equipo.setEstado("Dado de baja");
+
+        String evento = "Equipo dado de baja. Código anterior: " + codigo
+                + ". Responsable anterior: " + responsableAnterior
+                + ", Área: " + areaAnterior + ", Cargo: " + cargoAnterior
+                + (motivo != null && !motivo.isBlank() ? " | Motivo: " + motivo : "");
+        equipo.getHistorial().add(nuevoEvento(evento, "Sistema", "ESTADO"));
+
+        return equipoRepository.save(equipo);
+    }
+
     public Equipo agregarHistorial(String codigo, HistorialEventoDTO dto) {
         Equipo equipo = buscarPorCodigo(codigo);
         String tipo = dto.getTipo() != null ? dto.getTipo() : "GENERAL";
@@ -232,12 +286,10 @@ public class EquipoService {
         return equipoRepository.save(equipo);
     }
 
-    // ── Eliminar ──────────────────────────────────────────────────────────
     public void eliminar(String codigo) {
         equipoRepository.delete(buscarPorCodigo(codigo));
     }
 
-    // ── QR ───────────────────────────────────────────────────────────────
     public String obtenerQRBase64(String codigo) throws WriterException, IOException {
         return qrGenerador.generarBase64(codigo);
     }
@@ -246,7 +298,6 @@ public class EquipoService {
         return qrGenerador.generarBytes(codigo);
     }
 
-    // ── Helper ───────────────────────────────────────────────────────────
     private HistorialEvento nuevoEvento(String evento, String ingeniero, String tipo) {
         HistorialEvento ev = new HistorialEvento();
         ev.setFecha(LocalDate.now());
@@ -254,5 +305,35 @@ public class EquipoService {
         ev.setIngeniero(ingeniero != null ? ingeniero : "Sistema");
         ev.setTipo(tipo);
         return ev;
+    }
+
+    private String generarCodigoEspecial(String prefijo) {
+        List<Equipo> todos = equipoRepository.findAll();
+        int maxNum = 0;
+        for (Equipo e : todos) {
+            if (e.getCodigo() != null && e.getCodigo().startsWith(prefijo + "-")) {
+                String numStr = e.getCodigo().substring((prefijo + "-").length());
+                try {
+                    int num = Integer.parseInt(numStr);
+                    if (num > maxNum) maxNum = num;
+                } catch (NumberFormatException ignored) {}
+            }
+        }
+        int next = maxNum + 1;
+        return String.format("%s-%03d", prefijo, next);
+    }
+    public Equipo eliminarPeriferico(String codigo, int index, String motivo) {
+        Equipo equipo = buscarPorCodigo(codigo);
+        if (index >= 0 && index < equipo.getPerifericos().size()) {
+            Periferico eliminado = equipo.getPerifericos().remove(index);
+            String descripcion = "Periférico eliminado: " + eliminado.getTipo()
+                    + " (Marca: " + (eliminado.getMarca() != null ? eliminado.getMarca() : "N/A")
+                    + ", Serial: " + (eliminado.getSerial() != null ? eliminado.getSerial() : "N/A") + ")"
+                    + (motivo != null && !motivo.isBlank() ? " | Motivo: " + motivo : "");
+            equipo.getHistorial().add(nuevoEvento(descripcion, "Sistema", "GENERAL"));
+            return equipoRepository.save(equipo);
+        } else {
+            throw new RuntimeException("Índice de periférico inválido");
+        }
     }
 }

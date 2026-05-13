@@ -15,7 +15,6 @@ public class CodigoGenerador {
         this.equipoRepository = equipoRepository;
     }
 
-    // Áreas → abreviatura
     private static final Map<String, String> AREAS = Map.of(
             "Contabilidad",    "CONTAB",
             "Sistemas",        "SISTEM",
@@ -25,7 +24,6 @@ public class CodigoGenerador {
             "Logística",       "LOGIST"
     );
 
-    // Cargos → abreviatura + prioridad jerárquica (menor número = mayor jerarquía)
     private static final Map<String, String> CARGOS = Map.of(
             "Gerente",     "GEREN",
             "Coordinador", "COORD",
@@ -35,14 +33,13 @@ public class CodigoGenerador {
             "Asesor",      "ASESOR"
     );
 
-    // Orden jerárquico de cargos (posición = número base asignado)
     private static final List<String> JERARQUIA_CARGOS = List.of(
-            "Gerente",      // → 01
-            "Coordinador",  // → 02
-            "Analista",     // → 03
-            "Técnico",      // → 04
-            "Auxiliar",     // → 05
-            "Asesor"        // → 06
+            "Gerente",
+            "Coordinador",
+            "Analista",
+            "Técnico",
+            "Auxiliar",
+            "Asesor"
     );
 
     private static final Map<String, List<String>> MARCAS_MODELOS = Map.of(
@@ -92,23 +89,27 @@ public class CodigoGenerador {
             "500 GB HDD", "1 TB HDD", "2 TB HDD", "256 GB SSD + 1 TB HDD"
     );
 
-    /**
-     * Genera código con numeración jerárquica por cargo dentro del área.
-     * Ejemplo: RRHH-GEREN-01, RRHH-COORD-01, RRHH-COORD-02
-     * El número refleja cuántos equipos del mismo cargo+área ya existen + 1.
-     */
+    // Método principal para generar nuevo código (incremental por área)
     public String generar(String area, String cargo) {
         String abvArea  = AREAS.getOrDefault(area, area.toUpperCase().substring(0, Math.min(6, area.length())));
         String abvCargo = CARGOS.getOrDefault(cargo, cargo.toUpperCase().substring(0, Math.min(6, cargo.length())));
-        String prefijo  = abvArea + "-" + abvCargo + "-";
 
-        int numero = 1;
-        while (equipoRepository.existsByCodigo(prefijo + String.format("%02d", numero))) {
-            numero++;
-        }
-        return prefijo + String.format("%02d", numero);
+        long count = equipoRepository.countByArea(area);
+        int nextNumber = (int) count + 1;
+
+        return abvArea + "-" + abvCargo + "-" + String.format("%02d", nextNumber);
     }
 
+    // Regenerar código cuando cambia área o cargo (reutiliza el mismo contador)
+    public String regenerarCodigo(String area, String cargo) {
+        String abvArea  = AREAS.getOrDefault(area, area.toUpperCase().substring(0, Math.min(6, area.length())));
+        String abvCargo = CARGOS.getOrDefault(cargo, cargo.toUpperCase().substring(0, Math.min(6, cargo.length())));
+        long count = equipoRepository.countByArea(area);
+        int nextNumber = (int) count + 1;
+        return abvArea + "-" + abvCargo + "-" + String.format("%02d", nextNumber);
+    }
+
+    // Métodos estáticos para acceder a los mapas y listas desde los controladores
     public static Map<String, String> getAreas()               { return AREAS; }
     public static Map<String, String> getCargos()              { return CARGOS; }
     public static Map<String, List<String>> getMarcasModelos() { return MARCAS_MODELOS; }

@@ -6,114 +6,700 @@
     <title>Equipos · SysInventory | Mardique</title>
     <style>
         :root{
-            --gold:#C49A28;--gold-l:#D4AF37;--gold-d:#9A7A1A;
-            --navy:#0D1B2A;--blue:#2E86C1;--green:#27AE60;--orange:#E67E22;--red:#E74C3C;
-            --bg:#F2F4F7;--card:#fff;--text:#1C2833;--muted:#6C7A89;
-            --border:#DDE1E7;--r:10px;--sh:0 2px 14px rgba(0,0,0,.07);
+            --gold:#C49A28;
+            --gold-l:#D9B14B;
+            --gold-d:#8C6B12;
+            --navy:#111827;
+            --navy-2:#1E293B;
+            --blue:#1992D4;
+            --cyan:#27B4D8;
+            --green:#16A34A;
+            --orange:#F59E0B;
+            --red:#DC2626;
+            --bg:#EEF2F7;
+            --card:#FFFFFF;
+            --text:#1F2937;
+            --muted:#6B7280;
+            --border:#E5E7EB;
+            --r:18px;
+            --shadow:0 10px 25px rgba(15,23,42,.06), 0 4px 10px rgba(15,23,42,.04);
         }
-        *{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh}
-        .sidebar{width:250px;background:var(--navy);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:200}
-        .s-logo{padding:1.3rem 1.2rem;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:.75rem}
-        .s-logo-img{height:34px;object-fit:contain;filter:brightness(0) invert(1)}
-        .s-logo-txt{color:rgba(255,255,255,.55);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;line-height:1.4}
-        .s-sect{padding:.8rem 1.2rem .2rem;font-size:.6rem;color:rgba(255,255,255,.28);text-transform:uppercase;letter-spacing:.1em;font-weight:700}
-        .s-link{display:flex;align-items:center;gap:.7rem;padding:.65rem 1.2rem;color:rgba(255,255,255,.6);text-decoration:none;font-size:.84rem;border-left:3px solid transparent;transition:all .18s}
-        .s-link:hover,.s-link.active{color:#fff;background:rgba(255,255,255,.06);border-left-color:var(--gold)}
-        .s-link svg{width:15px;height:15px;flex-shrink:0}
-        .s-bottom{margin-top:auto;padding:1rem 1.2rem;border-top:1px solid rgba(255,255,255,.06);font-size:.65rem;color:rgba(255,255,255,.2)}
-        .main{margin-left:250px;flex:1;display:flex;flex-direction:column}
-        .topbar{height:58px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;position:sticky;top:0;z-index:100}
-        .topbar-title{font-size:.95rem;font-weight:600}
-        .t-user{display:flex;align-items:center;gap:.5rem;background:var(--bg);border-radius:999px;padding:.28rem .7rem .28rem .35rem;font-size:.8rem;font-weight:500}
-        .avatar{width:25px;height:25px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.67rem;font-weight:700}
-        .page{padding:1.75rem 2rem;flex:1}
-        .ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem}
-        .ph h1{font-size:1.45rem;font-weight:700}
-        .ph p{color:var(--muted);font-size:.88rem;margin-top:.2rem}
-        .btn-p{display:inline-flex;align-items:center;gap:.45rem;background:var(--gold);color:#fff;padding:.5rem 1.15rem;border-radius:8px;font-size:.86rem;font-weight:600;text-decoration:none;border:none;cursor:pointer;transition:background .2s}
-        .btn-p:hover{background:var(--gold-d)}
-        .btn-p svg{width:15px;height:15px}
-        .panel{background:var(--card);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--sh);margin-bottom:1.4rem;overflow:hidden}
-        .panel-hdr{padding:.9rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem;justify-content:space-between}
-        .panel-hdr-icon{width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,var(--gold),var(--gold-d));display:flex;align-items:center;justify-content:center}
-        .panel-hdr-icon svg{width:15px;height:15px;color:#fff}
-        .panel-hdr-title{font-size:.9rem;font-weight:700;display:flex;align-items:center;gap:.6rem}
-        .panel-body{padding:1.4rem 1.5rem}
-        .lnk{color:var(--blue);text-decoration:none;font-size:.85rem;font-weight:500}
-        .lnk:hover{text-decoration:underline}
-        table.clean{width:100%;border-collapse:collapse;font-size:.86rem}
-        table.clean th{padding:.6rem .9rem;text-align:left;background:var(--bg);color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid var(--border);cursor:pointer;user-select:none}
-        table.clean td{padding:.65rem .9rem;border-bottom:1px solid var(--border);vertical-align:middle}
-        table.clean tbody tr:hover{background:#F8FAFC}
-        .filters-bar{display:flex;gap:.8rem;margin-bottom:1rem;flex-wrap:wrap}
-        .filters-bar input, .filters-bar select{padding:.45rem .8rem;border:1px solid var(--border);border-radius:8px;font-size:.85rem;background:white;color:var(--text);min-width:150px}
-        .filters-bar input:focus, .filters-bar select:focus{outline:none;border-color:var(--gold)}
-        @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
-        .menu-toggle{display:none;position:fixed;top:10px;left:10px;z-index:300;background:var(--navy);color:white;border:none;padding:10px 12px;font-size:20px;border-radius:6px;cursor:pointer}
-        @media (max-width: 768px) {
-            .sidebar{transform:translateX(-100%);transition:transform 0.3s ease;width:250px;position:fixed;top:0;left:0;height:100vh;z-index:250}
-            .sidebar.open{transform:translateX(0)}
-            .main{margin-left:0}
-            .menu-toggle{display:block}
-            .page{padding:1.5rem 1rem}
-            .filters-bar{flex-direction:column}
-            .filters-bar input, .filters-bar select{width:100%}
-            table.clean{display:block;overflow-x:auto;white-space:nowrap}
+        *{
+            box-sizing:border-box;
+            margin:0;
+            padding:0;
+        }
+        body{
+            font-family:'Segoe UI',system-ui,sans-serif;
+            background:linear-gradient(180deg,#F4F7FB 0%,#EDF2F7 100%);
+            color:var(--text);
+            display:flex;
+            min-height:100vh;
+            overflow-x:hidden;
+        }
+        /* ================= SIDEBAR ================= */
+        .sidebar{
+            width:260px;
+            background:linear-gradient(180deg,#0F172A 0%, #111827 100%);
+            display:flex;
+            flex-direction:column;
+            position:fixed;
+            top:0;
+            left:0;
+            bottom:0;
+            z-index:200;
+            transition:transform .3s ease;
+            border-right:1px solid rgba(255,255,255,.04);
+        }
+        .sidebar::before{
+            content:'';
+            position:absolute;
+            top:0;
+            left:0;
+            right:0;
+            height:4px;
+            background:linear-gradient(90deg,var(--gold),#F5C84C,var(--blue));
+        }
+        .sidebar.collapsed{
+            transform:translateX(-100%);
+        }
+        .s-logo{
+            padding:1.6rem 1.4rem;
+            border-bottom:1px solid rgba(255,255,255,.06);
+            display:flex;
+            align-items:center;
+            gap:.9rem;
+        }
+        .s-logo-img{
+            height:42px;
+            object-fit:contain;
+            background:white;
+            border-radius:12px;
+            padding:.2rem;
+        }
+        .s-logo-txt{
+            color:#fff;
+            font-weight:700;
+            font-size:.95rem;
+            line-height:1.2;
+        }
+        .s-logo-txt span{
+            display:block;
+            color:rgba(255,255,255,.5);
+            font-size:.68rem;
+            font-weight:500;
+            margin-top:.2rem;
+            letter-spacing:.05em;
+            text-transform:uppercase;
+        }
+        .s-sect{
+            padding:1.2rem 1.4rem .4rem;
+            font-size:.68rem;
+            color:rgba(255,255,255,.3);
+            text-transform:uppercase;
+            letter-spacing:.12em;
+            font-weight:700;
+        }
+        .s-link{
+            margin:.15rem .8rem;
+            display:flex;
+            align-items:center;
+            gap:.8rem;
+            padding:.85rem 1rem;
+            color:rgba(255,255,255,.65);
+            text-decoration:none;
+            font-size:.9rem;
+            border-radius:12px;
+            transition:.25s;
+            position:relative;
+        }
+        .s-link svg{
+            width:18px;
+            height:18px;
+        }
+        .s-link:hover{
+            background:rgba(255,255,255,.06);
+            color:#fff;
+            transform:translateX(4px);
+        }
+        .s-link.active{
+            background:linear-gradient(90deg,rgba(196,154,40,.20),rgba(196,154,40,.06));
+            color:#fff;
+            border:1px solid rgba(196,154,40,.35);
+        }
+        .s-link.active::before{
+            content:'';
+            position:absolute;
+            left:-8px;
+            width:4px;
+            height:24px;
+            border-radius:10px;
+            background:var(--gold);
+        }
+        .s-bottom{
+            margin-top:auto;
+            padding:1.3rem;
+            color:rgba(255,255,255,.28);
+            font-size:.72rem;
+            border-top:1px solid rgba(255,255,255,.06);
+        }
+        /* ================= MAIN ================= */
+        .main{
+            margin-left:260px;
+            flex:1;
+            display:flex;
+            flex-direction:column;
+            transition:margin-left .3s ease;
+        }
+        .main.full{
+            margin-left:0;
+        }
+        /* ================= TOPBAR ================= */
+        .topbar{
+            height:72px;
+            background:rgba(255,255,255,.78);
+            backdrop-filter:blur(12px);
+            border-bottom:1px solid rgba(255,255,255,.5);
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            padding:0 1.8rem;
+            position:sticky;
+            top:0;
+            z-index:100;
+        }
+        .topbar-left{
+            display:flex;
+            align-items:center;
+            gap:1rem;
+        }
+        .menu-toggle{
+            width:40px;
+            height:40px;
+            border:none;
+            background:white;
+            border-radius:12px;
+            cursor:pointer;
+            box-shadow:var(--shadow);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            transition:.25s;
+        }
+        .menu-toggle:hover{
+            transform:translateY(-2px);
+        }
+        .logo-top{
+            display:flex;
+            align-items:center;
+            gap:.8rem;
+            text-decoration:none;
+        }
+        .logo-top-img{
+            height:36px;
+            background:white;
+            border-radius:10px;
+            padding:.2rem;
+        }
+        .logo-top-text{
+            font-weight:800;
+            font-size:1rem;
+            color:var(--navy);
+        }
+        .topbar-title{
+            font-size:.9rem;
+            color:var(--muted);
+            margin-left:.6rem;
+        }
+        .topbar-right{
+            display:flex;
+            align-items:center;
+            gap:1rem;
+        }
+        .user-info{
+            display:flex;
+            align-items:center;
+            gap:.8rem;
+            background:white;
+            padding:.45rem .9rem .45rem .45rem;
+            border-radius:999px;
+            box-shadow:var(--shadow);
+        }
+        .avatar{
+            width:38px;
+            height:38px;
+            border-radius:50%;
+            background:linear-gradient(135deg,var(--gold),var(--gold-d));
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            color:#fff;
+            font-weight:700;
+            font-size:1rem;
+            text-transform:uppercase;
+        }
+        .user-details{
+            display:flex;
+            flex-direction:column;
+        }
+        .user-name{
+            font-size:.83rem;
+            font-weight:700;
+        }
+        .user-email{
+            font-size:.7rem;
+            color:var(--muted);
+        }
+        .btn-logout{
+            background:white;
+            border:none;
+            border-radius:12px;
+            padding:.7rem 1rem;
+            color:var(--red);
+            cursor:pointer;
+            display:flex;
+            align-items:center;
+            gap:.5rem;
+            font-weight:600;
+            box-shadow:var(--shadow);
+            transition:.25s;
+        }
+        .btn-logout:hover{
+            transform:translateY(-2px);
+        }
+        /* ================= PAGE ================= */
+        .page{
+            padding:2rem;
+        }
+        .hero{
+            background:radial-gradient(circle at top right, rgba(25,146,212,.16), transparent 35%),
+            radial-gradient(circle at left bottom, rgba(196,154,40,.18), transparent 30%),
+            linear-gradient(135deg,#111827 0%, #1E293B 100%);
+            border-radius:28px;
+            padding:2rem;
+            margin-bottom:1.8rem;
+            position:relative;
+            overflow:hidden;
+            color:white;
+            box-shadow:var(--shadow);
+        }
+        .hero::after{
+            content:'';
+            position:absolute;
+            width:300px;
+            height:300px;
+            border-radius:50%;
+            background:rgba(255,255,255,.04);
+            right:-120px;
+            top:-120px;
+        }
+        .hero-top{
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+            gap:1rem;
+            flex-wrap:wrap;
+        }
+        .hero h1{
+            font-size:2rem;
+            font-weight:800;
+            margin-bottom:.5rem;
+        }
+        .hero p{
+            color:rgba(255,255,255,.75);
+            max-width:700px;
+            line-height:1.6;
+        }
+        .hero-actions{
+            display:flex;
+            gap:.8rem;
+            flex-wrap:wrap;
+        }
+        .btn-p{
+            background:linear-gradient(135deg,var(--gold),var(--gold-d));
+            color:white;
+            padding:.9rem 1.3rem;
+            border-radius:14px;
+            text-decoration:none;
+            font-weight:700;
+            display:inline-flex;
+            align-items:center;
+            gap:.6rem;
+            transition:.25s;
+            box-shadow:0 8px 18px rgba(196,154,40,.25);
+            border:none;
+            cursor:pointer;
+        }
+        .btn-p:hover{
+            transform:translateY(-2px);
+        }
+        .btn-sec{
+            background:rgba(255,255,255,.08);
+            border:1px solid rgba(255,255,255,.08);
+            color:white;
+            padding:.9rem 1.2rem;
+            border-radius:14px;
+            text-decoration:none;
+            font-weight:600;
+            backdrop-filter:blur(8px);
+        }
+        /* ================= PANEL TABLA ================= */
+        .panel{
+            background:white;
+            border-radius:24px;
+            box-shadow:var(--shadow);
+            overflow:hidden;
+            border:1px solid rgba(255,255,255,.6);
+        }
+        .panel-hdr{
+            padding:1.2rem 1.4rem;
+            border-bottom:1px solid var(--border);
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+        }
+        .panel-title{
+            display:flex;
+            align-items:center;
+            gap:.8rem;
+            font-weight:700;
+            font-size:.95rem;
+        }
+        .panel-icon{
+            width:38px;
+            height:38px;
+            border-radius:12px;
+            background:linear-gradient(135deg,var(--gold),var(--gold-d));
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            color:white;
+        }
+        .panel-body{
+            padding:1.4rem;
+        }
+        /* ================= FILTROS ================= */
+        .filters-bar{
+            display:flex;
+            gap:1rem;
+            margin-bottom:1.5rem;
+            flex-wrap:wrap;
+        }
+        .filters-bar input, .filters-bar select{
+            padding:.65rem 1rem;
+            border:1px solid var(--border);
+            border-radius:14px;
+            font-size:.85rem;
+            background:white;
+            color:var(--text);
+            flex:1;
+            min-width:180px;
+            transition:.2s;
+        }
+        .filters-bar input:focus, .filters-bar select:focus{
+            outline:none;
+            border-color:var(--gold);
+            box-shadow:0 0 0 3px rgba(196,154,40,.2);
+        }
+        /* ================= TABLA ================= */
+        table.clean{
+            width:100%;
+            border-collapse:collapse;
+            font-size:.88rem;
+        }
+        table.clean th{
+            text-align:left;
+            padding:1rem 1rem;
+            background:#F8FAFC;
+            font-size:.75rem;
+            text-transform:uppercase;
+            letter-spacing:.08em;
+            color:var(--muted);
+            font-weight:700;
+            cursor:pointer;
+            user-select:none;
+            border-bottom:2px solid var(--border);
+        }
+        table.clean th:hover{
+            background:#F1F5F9;
+        }
+        table.clean td{
+            padding:1rem 1rem;
+            border-bottom:1px solid #F1F5F9;
+            vertical-align:middle;
+        }
+        table.clean tbody tr{
+            transition:.2s;
+        }
+        table.clean tbody tr:hover{
+            background:#F8FAFC;
+        }
+        /* Badges de estado */
+        .status{
+            display:inline-flex;
+            align-items:center;
+            gap:.45rem;
+            padding:.35rem .9rem;
+            border-radius:999px;
+            font-size:.75rem;
+            font-weight:700;
+        }
+        .status::before{
+            content:'';
+            width:8px;
+            height:8px;
+            border-radius:50%;
+        }
+        .status.activo{
+            background:rgba(22,163,74,.1);
+            color:var(--green);
+        }
+        .status.activo::before{
+            background:var(--green);
+        }
+        .status.mantenimiento{
+            background:rgba(245,158,11,.12);
+            color:var(--orange);
+        }
+        .status.mantenimiento::before{
+            background:var(--orange);
+        }
+        .status.baja{
+            background:rgba(220,38,38,.1);
+            color:var(--red);
+        }
+        .status.baja::before{
+            background:var(--red);
+        }
+        .status.stock{
+            background:rgba(25,146,212,.1);
+            color:var(--blue);
+        }
+        .status.stock::before{
+            background:var(--blue);
+        }
+        /* Paginador */
+        .paginador{
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:1rem;
+            margin-top:1.8rem;
+        }
+        .paginador button{
+            background:linear-gradient(135deg,var(--gold),var(--gold-d));
+            border:none;
+            padding:.5rem 1rem;
+            border-radius:12px;
+            color:white;
+            font-weight:600;
+            cursor:pointer;
+            transition:.2s;
+        }
+        .paginador button:disabled{
+            opacity:0.4;
+            cursor:not-allowed;
+            transform:none;
+        }
+        .paginador button:hover:not(:disabled){
+            transform:translateY(-2px);
+        }
+        .paginador span{
+            font-size:.85rem;
+            color:var(--muted);
+        }
+        /* spinner */
+        .spinner-overlay{
+            position:fixed;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            background:rgba(255,255,255,0.85);
+            z-index:9999;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        }
+        .spinner{
+            width:44px;
+            height:44px;
+            border:5px solid #E2E8F0;
+            border-top:5px solid var(--gold);
+            border-radius:50%;
+            animation:spin 0.8s linear infinite;
+        }
+        @keyframes spin{
+            0%{transform:rotate(0deg)}
+            100%{transform:rotate(360deg)}
+        }
+        /* Responsive */
+        @media(max-width:1200px){
+            .filters-bar input, .filters-bar select{
+                min-width:140px;
+            }
+        }
+        @media(max-width:768px){
+            .sidebar{
+                transform:translateX(-100%);
+            }
+            .sidebar.collapsed{
+                transform:translateX(0);
+            }
+            .main{
+                margin-left:0;
+            }
+            .page{
+                padding:1rem;
+            }
+            .hero{
+                padding:1.5rem;
+            }
+            .hero h1{
+                font-size:1.5rem;
+            }
+            .user-details{
+                display:none;
+            }
+            .btn-logout span{
+                display:none;
+            }
+            .filters-bar{
+                flex-direction:column;
+            }
+            table.clean{
+                display:block;
+                overflow-x:auto;
+                white-space:nowrap;
+            }
         }
     </style>
 </head>
 <body>
-<button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
-<div id="loadingSpinner" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;">
-    <div style="width:44px;height:44px;border:5px solid #E2E8F0;border-top:5px solid var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
-</div>
 
-<aside class="sidebar">
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
     <div class="s-logo">
         <img class="s-logo-img" src="/img/logo.png" alt="Mardique"/>
-        <div class="s-logo-txt">Sistemas<br>Inventario TI</div>
+        <div class="s-logo-txt">
+            SysInventory
+            <span>Mardique SP</span>
+        </div>
     </div>
     <div class="s-sect">Principal</div>
     <a th:href="@{/}" class="s-link">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <rect x="3" y="3" width="7" height="7"/>
+            <rect x="14" y="3" width="7" height="7"/>
+            <rect x="3" y="14" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/>
+        </svg>
+        Dashboard
     </a>
     <div class="s-sect">Inventario</div>
     <a th:href="@{/equipos}" class="s-link active">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Equipos
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <rect x="2" y="3" width="20" height="14" rx="2"/>
+            <path d="M8 21h8M12 17v4"/>
+        </svg>
+        Equipos
     </a>
     <a th:href="@{/equipos/nuevo}" class="s-link">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>Registrar equipo
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 8v8M8 12h8"/>
+        </svg>
+        Registrar equipo
     </a>
-    <div class="s-bottom">SysInventory v1.0 · Mardique SP</div>
+    <div class="s-bottom">
+        SysInventory v1.0 <br>
+        Mardique Sociedad Portuaria
+    </div>
 </aside>
 
-<div class="main">
+<!-- MAIN -->
+<div class="main" id="main">
+    <!-- TOPBAR -->
     <div class="topbar">
-        <span class="topbar-title">Equipos registrados</span>
-        <div class="t-user"><div class="avatar">TI</div>Sistemas</div>
-    </div>
-    <div class="page">
-        <div class="ph">
-            <div>
-                <h1>Equipos registrados</h1>
-                <p>Listado completo de activos tecnológicos — Mardique Sociedad Portuaria</p>
-            </div>
-            <a th:href="@{/equipos/nuevo}" class="btn-p">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
-                Nuevo equipo
+        <div class="topbar-left">
+            <button class="menu-toggle" id="menuToggle">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="3" y1="12" x2="21" y2="12"/>
+                    <line x1="3" y1="6" x2="21" y2="6"/>
+                    <line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>
+            </button>
+            <a th:href="@{/}" class="logo-top">
+                <img class="logo-top-img" src="/img/logo.png" alt="Mardique"/>
+                <span class="logo-top-text">SysInventory</span>
             </a>
+            <span class="topbar-title">Gestión de equipos</span>
         </div>
+        <div class="topbar-right">
+            <div class="user-info">
+                <div class="avatar" id="userAvatar">
+                    <span th:text="${#strings.substring(userName,0,1)}">U</span>
+                </div>
+                <div class="user-details">
+                    <span class="user-name" th:text="${userName}">Usuario</span>
+                    <span class="user-email" th:text="${userEmail}">correo@ejemplo.com</span>
+                </div>
+            </div>
+            <form th:action="@{/logout}" method="post" style="display:inline">
+                <input type="hidden" name="_csrf" th:value="${_csrf != null ? _csrf.token : ''}" />
+                <button type="submit" class="btn-logout">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                        <polyline points="16 17 21 12 16 7"/>
+                        <line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                    <span>Cerrar sesión</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- PAGE CONTENT -->
+    <div class="page">
+        <!-- Hero -->
+        <div class="hero">
+            <div class="hero-top">
+                <div>
+                    <h1>Equipos registrados</h1>
+                    <p>Listado completo de activos tecnológicos — Mardique Sociedad Portuaria</p>
+                </div>
+                <div class="hero-actions">
+                    <a th:href="@{/equipos/nuevo}" class="btn-p">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 8v8M8 12h8"/>
+                        </svg>
+                        Nuevo equipo
+                    </a>
+                    <a th:href="@{/equipos}" class="btn-sec">
+                        Ver todos
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel con tabla -->
         <div class="panel">
             <div class="panel-hdr">
-                <span class="panel-hdr-title">
-                    <span class="panel-hdr-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span>
+                <div class="panel-title">
+                    <div class="panel-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="3" width="20" height="14" rx="2"/>
+                            <path d="M8 21h8M12 17v4"/>
+                        </svg>
+                    </div>
                     Listado de equipos
-                </span>
+                </div>
             </div>
             <div class="panel-body">
+                <!-- Filtros -->
                 <div class="filters-bar">
-                    <input type="text" id="filtroBusqueda" placeholder="Buscar por código, responsable, serial..." style="flex:1;min-width:200px;">
+                    <input type="text" id="filtroBusqueda" placeholder="Buscar por código, responsable, serial...">
                     <select id="filtroEstado">
                         <option value="">Todos los estados</option>
                         <option value="Activo">Activo</option>
@@ -125,13 +711,38 @@
                         <option value="">Todas las áreas</option>
                     </select>
                 </div>
+
+                <!-- Tabla inyectada por Thymeleaf -->
                 <div th:utext="${tablaEquipos}"></div>
+
+                <!-- Contenedor del paginador (se genera con JS) -->
+                <div id="paginadorContainer"></div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Spinner de carga -->
+<div id="loadingSpinner" class="spinner-overlay">
+    <div class="spinner"></div>
+</div>
+
 <script>
+    // Toggle sidebar
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const main = document.getElementById('main');
+
+    menuToggle.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+            sidebar.classList.toggle('collapsed');
+        } else {
+            sidebar.classList.toggle('collapsed');
+            main.classList.toggle('full');
+        }
+    });
+
+    // Lógica completa de filtros, ordenamiento y paginación
     window.addEventListener('load', function() {
         document.getElementById('loadingSpinner').style.display = 'none';
         inicializarLista();
@@ -141,19 +752,38 @@
         const table = document.querySelector('table.clean');
         if (!table) return;
 
-        // Llenar filtro de áreas
-        const areas = new Set();
+        // Convertir celdas de estado a badges visuales
+        const tdsEstado = table.querySelectorAll('tbody td:nth-child(7)');
+        tdsEstado.forEach(td => {
+            let estado = td.textContent.trim();
+            let badgeClass = '';
+            if (estado === 'Activo') badgeClass = 'activo';
+            else if (estado === 'En mantenimiento') badgeClass = 'mantenimiento';
+            else if (estado === 'Dado de baja') badgeClass = 'baja';
+            else if (estado === 'En stock') badgeClass = 'stock';
+            if (badgeClass) {
+                td.innerHTML = `<span class="status ${badgeClass}">${estado}</span>`;
+            }
+        });
+
+        // Extraer áreas únicas para el filtro de área
+        const areasSet = new Set();
         table.querySelectorAll('tbody tr').forEach(row => {
             const area = row.getAttribute('data-area');
-            if (area) areas.add(area);
+            if (area) areasSet.add(area);
         });
         const selArea = document.getElementById('filtroArea');
-        Array.from(areas).sort().forEach(area => {
-            const opt = document.createElement('option');
-            opt.value = area;
-            opt.textContent = area;
-            selArea.appendChild(opt);
+        Array.from(areasSet).sort().forEach(area => {
+            const option = document.createElement('option');
+            option.value = area;
+            option.textContent = area;
+            selArea.appendChild(option);
         });
+
+        const estadoSelect = document.getElementById('filtroEstado');
+        if (estadoSelect) {
+            estadoSelect.value = 'Activo';
+        }
 
         const tbody = table.querySelector('tbody');
         const allRows = Array.from(tbody.querySelectorAll('tr'));
@@ -182,7 +812,25 @@
             });
         }
 
-        function showPage(page, visibleRows = null) {
+        function renderPaginador(visibleRows) {
+            const totalPages = Math.ceil(visibleRows.length / rowsPerPage) || 1;
+            const container = document.getElementById('paginadorContainer');
+            container.innerHTML = `
+                <div class="paginador">
+                    <button id="prevPage" ${currentPage === 1 ? 'disabled' : ''}>← Anterior</button>
+                    <span>Página ${currentPage} de ${totalPages} (${visibleRows.length} equipos visibles)</span>
+                    <button id="nextPage" ${currentPage === totalPages ? 'disabled' : ''}>Siguiente →</button>
+                </div>
+            `;
+            document.getElementById('prevPage')?.addEventListener('click', () => {
+                if (currentPage > 1) showPage(currentPage - 1, visibleRows);
+            });
+            document.getElementById('nextPage')?.addEventListener('click', () => {
+                if (currentPage < totalPages) showPage(currentPage + 1, visibleRows);
+            });
+        }
+
+        function showPage(page, visibleRows) {
             if (!visibleRows) visibleRows = getVisibleRows();
             currentVisibleRows = visibleRows;
             const totalPages = Math.ceil(visibleRows.length / rowsPerPage) || 1;
@@ -195,10 +843,7 @@
             for (let i = start; i < end; i++) {
                 visibleRows[i].style.display = '';
             }
-            document.getElementById('pageInfo').textContent =
-                `Página ${currentPage} de ${totalPages} (${visibleRows.length} equipos visibles)`;
-            document.getElementById('prevPage').disabled = currentPage === 1;
-            document.getElementById('nextPage').disabled = currentPage === totalPages;
+            renderPaginador(visibleRows);
         }
 
         function aplicarFiltros() {
@@ -210,15 +855,23 @@
         document.getElementById('filtroEstado').addEventListener('change', aplicarFiltros);
         document.getElementById('filtroArea').addEventListener('change', aplicarFiltros);
 
+        // Ordenamiento por columnas (con soporte para la columna de estado con badge)
         const headers = table.querySelectorAll('th');
         headers.forEach((th, index) => {
             th.addEventListener('click', function() {
                 const isAsc = th.classList.contains('asc');
-                headers.forEach(h => h.classList.remove('asc','desc'));
+                headers.forEach(h => h.classList.remove('asc', 'desc'));
                 th.classList.add(isAsc ? 'desc' : 'asc');
                 currentVisibleRows.sort((a, b) => {
-                    const aVal = a.cells[index].textContent.trim();
-                    const bVal = b.cells[index].textContent.trim();
+                    let aVal, bVal;
+                    // Si es la columna de estado (séptima columna, índice 6)
+                    if (index === 6) {
+                        aVal = a.cells[index].querySelector('.status')?.textContent.trim() || a.cells[index].textContent.trim();
+                        bVal = b.cells[index].querySelector('.status')?.textContent.trim() || b.cells[index].textContent.trim();
+                    } else {
+                        aVal = a.cells[index].textContent.trim();
+                        bVal = b.cells[index].textContent.trim();
+                    }
                     const numA = parseFloat(aVal), numB = parseFloat(bVal);
                     if (!isNaN(numA) && !isNaN(numB)) return isAsc ? numB - numA : numA - numB;
                     return isAsc ? bVal.localeCompare(aVal) : aVal.localeCompare(bVal);
@@ -226,23 +879,6 @@
                 currentVisibleRows.forEach(row => tbody.appendChild(row));
                 showPage(currentPage, currentVisibleRows);
             });
-        });
-
-        const pagDiv = document.createElement('div');
-        pagDiv.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:1rem;margin-top:1rem;';
-        pagDiv.innerHTML = `
-            <button id="prevPage" class="btn-p" style="padding:.3rem .8rem;">← Anterior</button>
-            <span id="pageInfo" style="font-size:.85rem;color:var(--muted);"></span>
-            <button id="nextPage" class="btn-p" style="padding:.3rem .8rem;">Siguiente →</button>
-        `;
-        table.parentNode.insertBefore(pagDiv, table.nextSibling);
-
-        document.getElementById('prevPage').addEventListener('click', () => {
-            if (currentPage > 1) showPage(currentPage - 1, currentVisibleRows);
-        });
-        document.getElementById('nextPage').addEventListener('click', () => {
-            const totalPages = Math.ceil(currentVisibleRows.length / rowsPerPage) || 1;
-            if (currentPage < totalPages) showPage(currentPage + 1, currentVisibleRows);
         });
 
         const initialVisibles = getVisibleRows();

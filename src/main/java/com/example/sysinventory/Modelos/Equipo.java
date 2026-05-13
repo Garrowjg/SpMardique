@@ -17,14 +17,12 @@ public class Equipo {
     @Indexed(unique = true)
     private String codigo;
 
-    // ── Asignación ──
     private String area;
     private String cargo;
     private String responsable;
     private LocalDate fechaEntrega;
     private boolean esPrestamo;
 
-    // ── Dispositivo principal ──
     private String tipoDispositivo;   // Portátil, Desktop, Todo en uno
     private String marca;
     private String modelo;
@@ -35,22 +33,17 @@ public class Equipo {
     private String estadoFisico;      // Nuevo, Usado, Funcional, Dañado
     private String observaciones;
 
-    // ── Estado operativo ──
     private String estado;            // Activo, En mantenimiento, Dado de baja
 
-    // ── Cargador ──
     private boolean incluyeCargador;
     private String cargadorMarca;
     private String cargadorModelo;
     private String cargadorSerial;
 
-    // ── Periféricos ──
     private List<Periferico> perifericos = new ArrayList<>();
 
-    // ── Historial ──
     private List<HistorialEvento> historial = new ArrayList<>();
 
-    // ── Getters y Setters ──
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 

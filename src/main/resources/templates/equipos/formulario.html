@@ -3,45 +3,82 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-    <title>Registrar Equipo — SysInventory | Mardique</title>
+    <title>Registrar equipo · SysInventory | Mardique</title>
     <style>
+        /* ========== VARIABLES (mismo dashboard) ========== */
         :root{
-            --gold:#C49A28;--gold-l:#D4AF37;--gold-d:#9A7A1A;
-            --navy:#0D1B2A;--blue:#2E86C1;--danger:#C0392B;
-            --bg:#F2F4F7;--card:#fff;--text:#1C2833;--muted:#6C7A89;
-            --border:#DDE1E7;--r:10px;--sh:0 2px 14px rgba(0,0,0,.07);
+            --gold:#C49A28;
+            --gold-l:#D9B14B;
+            --gold-d:#8C6B12;
+            --navy:#111827;
+            --navy-2:#1E293B;
+            --blue:#1992D4;
+            --cyan:#27B4D8;
+            --green:#16A34A;
+            --orange:#F59E0B;
+            --red:#DC2626;
+            --bg:#EEF2F7;
+            --card:#FFFFFF;
+            --text:#1F2937;
+            --muted:#6B7280;
+            --border:#E5E7EB;
+            --r:18px;
+            --shadow:0 10px 25px rgba(15,23,42,.06), 0 4px 10px rgba(15,23,42,.04);
         }
         *{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh}
-
-        .sidebar{width:250px;background:var(--navy);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:200}
-        .s-logo{padding:1.3rem 1.2rem;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:.75rem}
-        .s-logo-img{height:34px;object-fit:contain;filter:brightness(0) invert(1)}
-        .s-logo-txt{color:rgba(255,255,255,.55);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;line-height:1.4}
-        .s-sect{padding:.8rem 1.2rem .2rem;font-size:.6rem;color:rgba(255,255,255,.28);text-transform:uppercase;letter-spacing:.1em;font-weight:700}
-        .s-link{display:flex;align-items:center;gap:.7rem;padding:.65rem 1.2rem;color:rgba(255,255,255,.6);text-decoration:none;font-size:.84rem;border-left:3px solid transparent;transition:all .18s}
-        .s-link:hover,.s-link.active{color:#fff;background:rgba(255,255,255,.06);border-left-color:var(--gold)}
-        .s-link svg{width:15px;height:15px;flex-shrink:0}
-        .s-bottom{margin-top:auto;padding:1rem 1.2rem;border-top:1px solid rgba(255,255,255,.06);font-size:.65rem;color:rgba(255,255,255,.2)}
-
-        .main{margin-left:250px;flex:1;display:flex;flex-direction:column}
-        .topbar{height:58px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;position:sticky;top:0;z-index:100}
-        .topbar-title{font-size:.95rem;font-weight:600}
-        .t-user{display:flex;align-items:center;gap:.5rem;background:var(--bg);border-radius:999px;padding:.28rem .7rem .28rem .35rem;font-size:.8rem;font-weight:500}
-        .avatar{width:25px;height:25px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.67rem;font-weight:700}
-        .page{padding:1.75rem 2rem;flex:1}
-
-        .bc{display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:var(--muted);margin-bottom:1.4rem}
-        .bc a{color:var(--muted);text-decoration:none}.bc a:hover{color:var(--gold)}
-        .bc span{color:var(--text)}
-
-        .panel{background:var(--card);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--sh);margin-bottom:1.4rem;overflow:hidden}
-        .panel-hdr{padding:.9rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem}
-        .panel-hdr-icon{width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,var(--gold),var(--gold-d));display:flex;align-items:center;justify-content:center}
-        .panel-hdr-icon svg{width:15px;height:15px;color:#fff}
-        .panel-hdr-title{font-size:.9rem;font-weight:700}
-        .panel-body{padding:1.4rem 1.5rem}
-
+        body{font-family:'Segoe UI',system-ui,sans-serif;background:linear-gradient(180deg,#F4F7FB 0%,#EDF2F7 100%);color:var(--text);display:flex;min-height:100vh;overflow-x:hidden}
+        /* ================= SIDEBAR ================= */
+        .sidebar{width:260px;background:linear-gradient(180deg,#0F172A 0%, #111827 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:200;transition:transform .3s ease;border-right:1px solid rgba(255,255,255,.04)}
+        .sidebar::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--gold),#F5C84C,var(--blue))}
+        .sidebar.collapsed{transform:translateX(-100%)}
+        .s-logo{padding:1.6rem 1.4rem;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:.9rem}
+        .s-logo-img{height:42px;object-fit:contain;background:white;border-radius:12px;padding:.2rem}
+        .s-logo-txt{color:#fff;font-weight:700;font-size:.95rem;line-height:1.2}
+        .s-logo-txt span{display:block;color:rgba(255,255,255,.5);font-size:.68rem;font-weight:500;margin-top:.2rem;letter-spacing:.05em;text-transform:uppercase}
+        .s-sect{padding:1.2rem 1.4rem .4rem;font-size:.68rem;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.12em;font-weight:700}
+        .s-link{margin:.15rem .8rem;display:flex;align-items:center;gap:.8rem;padding:.85rem 1rem;color:rgba(255,255,255,.65);text-decoration:none;font-size:.9rem;border-radius:12px;transition:.25s;position:relative}
+        .s-link svg{width:18px;height:18px}
+        .s-link:hover{background:rgba(255,255,255,.06);color:#fff;transform:translateX(4px)}
+        .s-link.active{background:linear-gradient(90deg,rgba(196,154,40,.20),rgba(196,154,40,.06));color:#fff;border:1px solid rgba(196,154,40,.35)}
+        .s-link.active::before{content:'';position:absolute;left:-8px;width:4px;height:24px;border-radius:10px;background:var(--gold)}
+        .s-bottom{margin-top:auto;padding:1.3rem;color:rgba(255,255,255,.28);font-size:.72rem;border-top:1px solid rgba(255,255,255,.06)}
+        /* ================= MAIN ================= */
+        .main{margin-left:260px;flex:1;display:flex;flex-direction:column;transition:margin-left .3s ease}
+        .main.full{margin-left:0}
+        /* ================= TOPBAR ================= */
+        .topbar{height:72px;background:rgba(255,255,255,.78);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:space-between;padding:0 1.8rem;position:sticky;top:0;z-index:100}
+        .topbar-left{display:flex;align-items:center;gap:1rem}
+        .menu-toggle{width:40px;height:40px;border:none;background:white;border-radius:12px;cursor:pointer;box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;transition:.25s}
+        .menu-toggle:hover{transform:translateY(-2px)}
+        .logo-top{display:flex;align-items:center;gap:.8rem;text-decoration:none}
+        .logo-top-img{height:36px;background:white;border-radius:10px;padding:.2rem}
+        .logo-top-text{font-weight:800;font-size:1rem;color:var(--navy)}
+        .topbar-title{font-size:.9rem;color:var(--muted);margin-left:.6rem}
+        .topbar-right{display:flex;align-items:center;gap:1rem}
+        .user-info{display:flex;align-items:center;gap:.8rem;background:white;padding:.45rem .9rem .45rem .45rem;border-radius:999px;box-shadow:var(--shadow)}
+        .avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-d));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:1rem;text-transform:uppercase}
+        .user-details{display:flex;flex-direction:column}
+        .user-name{font-size:.83rem;font-weight:700}
+        .user-email{font-size:.7rem;color:var(--muted)}
+        .btn-logout{background:white;border:none;border-radius:12px;padding:.7rem 1rem;color:var(--red);cursor:pointer;display:flex;align-items:center;gap:.5rem;font-weight:600;box-shadow:var(--shadow);transition:.25s}
+        .btn-logout:hover{transform:translateY(-2px)}
+        /* ================= PAGE ================= */
+        .page{padding:2rem}
+        .hero{background:radial-gradient(circle at top right, rgba(25,146,212,.16), transparent 35%),radial-gradient(circle at left bottom, rgba(196,154,40,.18), transparent 30%),linear-gradient(135deg,#111827 0%, #1E293B 100%);border-radius:28px;padding:2rem;margin-bottom:1.8rem;position:relative;overflow:hidden;color:white;box-shadow:var(--shadow)}
+        .hero::after{content:'';position:absolute;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,.04);right:-120px;top:-120px}
+        .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap}
+        .hero h1{font-size:2rem;font-weight:800;margin-bottom:.5rem}
+        .hero p{color:rgba(255,255,255,.75);max-width:700px;line-height:1.6}
+        .hero-actions{display:flex;gap:.8rem;flex-wrap:wrap}
+        .btn-sec{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);color:white;padding:.9rem 1.2rem;border-radius:14px;text-decoration:none;font-weight:600;backdrop-filter:blur(8px)}
+        /* ================= PANELES Y FORMULARIO ================= */
+        .panel{background:white;border-radius:24px;box-shadow:var(--shadow);overflow:hidden;border:1px solid rgba(255,255,255,.6);margin-bottom:1.4rem}
+        .panel-hdr{padding:1.2rem 1.4rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.8rem}
+        .panel-hdr-icon{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,var(--gold),var(--gold-d));display:flex;align-items:center;justify-content:center;color:white}
+        .panel-hdr-icon svg{width:18px;height:18px}
+        .panel-hdr-title{font-weight:700;font-size:.95rem}
+        .panel-body{padding:1.4rem}
+        /* grids y campos */
         .fg{display:grid;gap:1rem;margin-bottom:1rem}
         .fg.c2{grid-template-columns:1fr 1fr}
         .fg.c3{grid-template-columns:1fr 1fr 1fr}
@@ -49,64 +86,59 @@
         .form-group{display:flex;flex-direction:column;gap:.3rem}
         label{font-size:.82rem;font-weight:600;color:var(--text)}
         .req{color:var(--gold-d);margin-left:2px}
-        .fc{border:1px solid var(--border);border-radius:8px;padding:.55rem .85rem;font-size:.88rem;width:100%;background:#fff;transition:border-color .2s,box-shadow .2s;color:var(--text)}
+        .fc{border:1px solid var(--border);border-radius:14px;padding:.65rem 1rem;font-size:.88rem;width:100%;background:#fff;transition:border-color .2s,box-shadow .2s;color:var(--text)}
         .fc:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(196,154,40,.15)}
-        .fc.error{border-color:var(--danger);box-shadow:0 0 0 3px rgba(192,57,43,.15)}
+        .fc.error{border-color:var(--red);box-shadow:0 0 0 3px rgba(220,38,38,.15)}
         select.fc{cursor:pointer}
         textarea.fc{resize:vertical;min-height:80px}
-        .err{color:var(--danger);font-size:.75rem;margin-top:.15rem}
-
+        .err{color:var(--red);font-size:.75rem;margin-top:.15rem}
         .checks{display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap}
         .chk-item{display:flex;align-items:center;gap:.45rem;cursor:pointer;font-size:.86rem}
         .chk-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--gold);cursor:pointer}
-
-        .cargador-box{border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-top:.5rem}
+        .cargador-box{border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-top:.5rem}
         .cargador-hdr{display:flex;align-items:center;justify-content:space-between;padding:.6rem .9rem;cursor:pointer;background:var(--bg);font-size:.84rem;font-weight:500;user-select:none}
-        .cargador-hdr:hover{background:#edf0f5}
+        .cargador-hdr:hover{background:#E2E8F0}
         .cargador-body{display:none;padding:.85rem .9rem;border-top:1px solid var(--border);background:#fff}
         .cargador-body.open{display:block}
-
+        .slabel{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gold-d);margin-bottom:.75rem;display:flex;align-items:center;gap:.4rem}
+        .slabel::after{content:'';flex:1;height:1px;background:var(--border)}
+        .add-custom-btn{display:inline-flex;align-items:center;gap:.3rem;font-size:.76rem;color:var(--gold-d);background:none;border:none;cursor:pointer;padding:.15rem 0;font-weight:500}
+        .add-custom-btn:hover{text-decoration:underline}
+        /* Periféricos */
         .perifericos-list{display:flex;flex-direction:column;gap:.85rem}
-        .periferico-row{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem}
+        .periferico-row{background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:.85rem 1rem}
         .periferico-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
         .periferico-tipo-label{font-size:.82rem;font-weight:600;color:var(--gold-d)}
-        .btn-remove{width:28px;height:28px;border:none;background:#FDEDEC;border-radius:6px;color:var(--danger);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .18s;flex-shrink:0}
+        .btn-remove{width:28px;height:28px;border:none;background:#FDEDEC;border-radius:8px;color:var(--red);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .18s;flex-shrink:0}
         .btn-remove:hover{background:#F1948A;color:#fff}
         .btn-remove svg{width:13px;height:13px}
         .periferico-fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem}
-
         .add-group{display:flex;gap:.65rem;flex-wrap:wrap;margin-top:.85rem}
-        .btn-add-p{display:inline-flex;align-items:center;gap:.4rem;padding:.42rem .85rem;border-radius:8px;border:1.5px dashed var(--border);background:transparent;color:var(--muted);font-size:.8rem;cursor:pointer;transition:all .18s}
+        .btn-add-p{display:inline-flex;align-items:center;gap:.4rem;padding:.42rem .85rem;border-radius:14px;border:1.5px dashed var(--border);background:transparent;color:var(--muted);font-size:.8rem;cursor:pointer;transition:all .18s}
         .btn-add-p:hover{border-color:var(--gold);color:var(--gold-d);background:#FEF9E7}
         .btn-add-p svg{width:13px;height:13px}
-
+        /* Modales */
         .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;align-items:center;justify-content:center}
         .modal-overlay.open{display:flex}
-        .modal{background:#fff;border-radius:var(--r);padding:1.5rem;width:440px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,.18)}
+        .modal{background:#fff;border-radius:24px;padding:1.5rem;width:440px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,.18)}
         .modal h3{font-size:1rem;font-weight:700;margin-bottom:1.1rem}
         .modal-footer{display:flex;gap:.65rem;justify-content:flex-end;margin-top:1.1rem;padding-top:1rem;border-top:1px solid var(--border)}
-
-        .form-actions{display:flex;gap:.85rem;justify-content:flex-end;padding-top:1rem;border-top:1px solid var(--border)}
-        .btn{display:inline-flex;align-items:center;gap:.4rem;padding:.55rem 1.3rem;border-radius:8px;font-size:.88rem;font-weight:600;border:none;cursor:pointer;text-decoration:none;transition:background .18s}
-        .btn-primary{background:var(--gold);color:#fff}.btn-primary:hover{background:var(--gold-d)}
-        .btn-secondary{background:var(--bg);color:var(--text);border:1px solid var(--border)}.btn-secondary:hover{background:#e4e7ed}
+        .btn{display:inline-flex;align-items:center;gap:.4rem;padding:.55rem 1.3rem;border-radius:14px;font-size:.88rem;font-weight:600;border:none;cursor:pointer;text-decoration:none;transition:background .18s}
+        .btn-primary{background:linear-gradient(135deg,var(--gold),var(--gold-d));color:#fff}.btn-primary:hover{transform:translateY(-2px)}
+        .btn-secondary{background:var(--bg);color:var(--text);border:1px solid var(--border)}.btn-secondary:hover{background:#E2E8F0}
         .btn svg{width:15px;height:15px}
-
-        .slabel{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gold-d);margin-bottom:.75rem;display:flex;align-items:center;gap:.4rem}
-        .slabel::after{content:'';flex:1;height:1px;background:var(--border)}
-
-        .add-custom-btn{display:inline-flex;align-items:center;gap:.3rem;font-size:.76rem;color:var(--gold-d);background:none;border:none;cursor:pointer;padding:.15rem 0;font-weight:500}
-        .add-custom-btn:hover{text-decoration:underline}
-
-        .menu-toggle{display:none;position:fixed;top:10px;left:10px;z-index:300;background:var(--navy);color:white;border:none;padding:10px 12px;font-size:20px;border-radius:6px;cursor:pointer}
-        @media (max-width: 768px) {
-            .sidebar{transform:translateX(-100%);transition:transform 0.3s ease;width:250px;position:fixed;top:0;left:0;height:100vh;z-index:250}
-            .sidebar.open{transform:translateX(0)}
+        .form-actions{display:flex;gap:.85rem;justify-content:flex-end;padding-top:1rem;border-top:1px solid var(--border);margin-top:1rem}
+        /* Responsive */
+        @media(max-width:768px){
+            .sidebar{transform:translateX(-100%)}
+            .sidebar.collapsed{transform:translateX(0)}
             .main{margin-left:0}
-            .menu-toggle{display:block}
-            .page{padding:1.5rem 1rem}
-            .topbar{padding:0 1rem}
-            .fg.c3, .fg.c4{grid-template-columns:1fr}
+            .page{padding:1rem}
+            .hero{padding:1.5rem}
+            .hero h1{font-size:1.5rem}
+            .user-details{display:none}
+            .btn-logout span{display:none}
+            .fg.c3,.fg.c4{grid-template-columns:1fr}
             .fg.c2{grid-template-columns:1fr}
             .periferico-fields{grid-template-columns:1fr}
             .checks{flex-direction:column;align-items:flex-start;gap:.5rem}
@@ -118,42 +150,70 @@
     </style>
 </head>
 <body>
-<button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
-<aside class="sidebar">
+
+<aside class="sidebar" id="sidebar">
     <div class="s-logo">
         <img class="s-logo-img" src="/img/logo.png" alt="Mardique"/>
-        <div class="s-logo-txt">Sistemas<br>Inventario TI</div>
+        <div class="s-logo-txt">SysInventory<span>Mardique SP</span></div>
     </div>
     <div class="s-sect">Principal</div>
     <a th:href="@{/}" class="s-link">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
     </a>
     <div class="s-sect">Inventario</div>
     <a th:href="@{/equipos}" class="s-link">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Equipos
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        Equipos
     </a>
     <a th:href="@{/equipos/nuevo}" class="s-link active">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>Registrar equipo
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+        Registrar equipo
     </a>
-    <div class="s-bottom">SysInventory v1.0 · Mardique SP</div>
+    <div class="s-bottom">SysInventory v1.0 <br> Mardique Sociedad Portuaria</div>
 </aside>
 
-<div class="main">
+<div class="main" id="main">
     <div class="topbar">
-        <span class="topbar-title">Registrar nuevo equipo</span>
-        <div class="t-user"><div class="avatar">TI</div>Sistemas</div>
+        <div class="topbar-left">
+            <button class="menu-toggle" id="menuToggle">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+            <a th:href="@{/}" class="logo-top"><img class="logo-top-img" src="/img/logo.png"/><span class="logo-top-text">SysInventory</span></a>
+            <span class="topbar-title">Registrar equipo</span>
+        </div>
+        <div class="topbar-right">
+            <div class="user-info">
+                <div class="avatar" th:text="${#strings.substring(userName,0,1)}">U</div>
+                <div class="user-details">
+                    <span class="user-name" th:text="${userName}">Usuario</span>
+                    <span class="user-email" th:text="${userEmail}">correo@ejemplo.com</span>
+                </div>
+            </div>
+            <form th:action="@{/logout}" method="post" style="display:inline">
+                <input type="hidden" name="_csrf" th:value="${_csrf != null ? _csrf.token : ''}"/>
+                <button type="submit" class="btn-logout">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <span>Cerrar sesión</span>
+                </button>
+            </form>
+        </div>
     </div>
+
     <div class="page">
-        <div class="bc">
-            <a th:href="@{/}">Dashboard</a>
-            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-            <a th:href="@{/equipos}">Equipos</a>
-            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-            <span>Nuevo registro</span>
+        <div class="hero">
+            <div class="hero-top">
+                <div>
+                    <h1>Registrar equipo</h1>
+                    <p>Ingrese los datos del nuevo activo tecnológico</p>
+                </div>
+                <div class="hero-actions">
+                    <a th:href="@{/equipos}" class="btn-sec">← Volver al listado</a>
+                </div>
+            </div>
         </div>
 
         <form th:action="@{/equipos/nuevo}" th:object="${equipoDTO}" method="post" id="frmEquipo">
-
             <!-- Asignación -->
             <div class="panel">
                 <div class="panel-hdr">
@@ -340,6 +400,9 @@
                         <button type="button" class="btn-add-p" onclick="addPeriferico('Auriculares')">Auriculares</button>
                         <button type="button" class="btn-add-p" onclick="addPeriferico('Hub USB')">Hub / Extensor USB</button>
                         <button type="button" class="btn-add-p" onclick="addPeriferico('UPS')">UPS</button>
+                        <!-- NUEVOS BOTONES -->
+                        <button type="button" class="btn-add-p" onclick="addPeriferico('Soporte de monitor')">Soporte de monitor</button>
+                        <button type="button" class="btn-add-p" onclick="addPeriferico('Base refrigerante')">Base refrigerante</button>
                         <button type="button" class="btn-add-p" onclick="addPeriferico('Otro')">Otro dispositivo</button>
                     </div>
                 </div>
@@ -359,213 +422,167 @@
     </div>
 </div>
 
-<!-- Modales -->
-<div class="modal-overlay" id="modalMarca">
-    <div class="modal">
-        <h3>Agregar nueva marca</h3>
-        <div class="form-group"><input type="text" id="inpNuevaMarca" class="fc" placeholder="Nombre de la marca"/></div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="cerrarModal('modalMarca')">Cancelar</button>
-            <button type="button" class="btn btn-primary" onclick="guardarNuevaMarca()">Agregar</button>
-        </div>
-    </div>
-</div>
-
-<div class="modal-overlay" id="modalModelo">
-    <div class="modal">
-        <h3>Agregar nuevo modelo</h3>
-        <div class="form-group"><input type="text" id="inpNuevoModelo" class="fc" placeholder="Nombre del modelo"/></div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="cerrarModal('modalModelo')">Cancelar</button>
-            <button type="button" class="btn btn-primary" onclick="guardarNuevoModelo()">Agregar</button>
-        </div>
-    </div>
-</div>
-
-<div class="modal-overlay" id="modalRam">
-    <div class="modal">
-        <h3>Agregar nueva opción de RAM</h3>
-        <div class="form-group"><input type="text" id="inpNuevaRam" class="fc" placeholder="Ej: 12 GB DDR5"/></div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="cerrarModal('modalRam')">Cancelar</button>
-            <button type="button" class="btn btn-primary" onclick="guardarNuevaRam()">Agregar</button>
-        </div>
-    </div>
-</div>
-
-<div class="modal-overlay" id="modalDisco">
-    <div class="modal">
-        <h3>Agregar nueva opción de disco</h3>
-        <div class="form-group"><input type="text" id="inpNuevoDisco" class="fc" placeholder="Ej: 512 GB NVMe"/></div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="cerrarModal('modalDisco')">Cancelar</button>
-            <button type="button" class="btn btn-primary" onclick="guardarNuevoDisco()">Agregar</button>
-        </div>
-    </div>
-</div>
+<!-- Modales para agregar opciones -->
+<div class="modal-overlay" id="modalMarca"><div class="modal"><h3>Agregar nueva marca</h3><div class="form-group"><input type="text" id="inpNuevaMarca" class="fc" placeholder="Nombre de la marca"/></div><div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="cerrarModal('modalMarca')">Cancelar</button><button type="button" class="btn btn-primary" onclick="guardarNuevaMarca()">Agregar</button></div></div></div>
+<div class="modal-overlay" id="modalModelo"><div class="modal"><h3>Agregar nuevo modelo</h3><div class="form-group"><input type="text" id="inpNuevoModelo" class="fc" placeholder="Nombre del modelo"/></div><div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="cerrarModal('modalModelo')">Cancelar</button><button type="button" class="btn btn-primary" onclick="guardarNuevoModelo()">Agregar</button></div></div></div>
+<div class="modal-overlay" id="modalRam"><div class="modal"><h3>Agregar nueva opción de RAM</h3><div class="form-group"><input type="text" id="inpNuevaRam" class="fc" placeholder="Ej: 12 GB DDR5"/></div><div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="cerrarModal('modalRam')">Cancelar</button><button type="button" class="btn btn-primary" onclick="guardarNuevaRam()">Agregar</button></div></div></div>
+<div class="modal-overlay" id="modalDisco"><div class="modal"><h3>Agregar nueva opción de disco</h3><div class="form-group"><input type="text" id="inpNuevoDisco" class="fc" placeholder="Ej: 512 GB NVMe"/></div><div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="cerrarModal('modalDisco')">Cancelar</button><button type="button" class="btn btn-primary" onclick="guardarNuevoDisco()">Agregar</button></div></div></div>
 
 <script th:inline="javascript">
     const MARCAS_MODELOS = /*[[${marcasModelos}]]*/ {};
     let pCount = 0;
 
     function filtrarModelos(marca){
-        const sel=document.getElementById('selModelo');
-        const customInp=document.getElementById('inpModeloCustom');
-        const btnNuevo=document.getElementById('btnNuevoModelo');
-        if(!marca||marca==='__OTRA__'){
-            document.getElementById('selMarca').value='';
+        const sel = document.getElementById('selModelo');
+        const customInp = document.getElementById('inpModeloCustom');
+        const btnNuevo = document.getElementById('btnNuevoModelo');
+        if(!marca || marca === '__OTRA__'){
+            document.getElementById('selMarca').value = '';
             abrirModalMarca();
             return;
         }
-        sel.style.display='block';
-        customInp.style.display='none';
-        customInp.name='';
-        btnNuevo.style.display='inline-flex';
-        const modelos=MARCAS_MODELOS[marca]||[];
-        sel.innerHTML='<option value="">Seleccionar modelo</option>';
-        modelos.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m;sel.appendChild(o);});
-        const oOtra=document.createElement('option');oOtra.value='__OTRO__';oOtra.textContent='Otro modelo...';sel.appendChild(oOtra);
-        sel.onchange=function(){
-            if(this.value==='__OTRO__'){this.style.display='none';customInp.style.display='block';customInp.name='modelo';sel.name='';}
+        sel.style.display = 'block';
+        customInp.style.display = 'none';
+        customInp.name = '';
+        btnNuevo.style.display = 'inline-flex';
+        const modelos = MARCAS_MODELOS[marca] || [];
+        sel.innerHTML = '<option value="">Seleccionar modelo</option>';
+        modelos.forEach(m => { const o = document.createElement('option'); o.value = m; o.textContent = m; sel.appendChild(o); });
+        const oOtra = document.createElement('option'); oOtra.value = '__OTRO__'; oOtra.textContent = 'Otro modelo...'; sel.appendChild(oOtra);
+        sel.onchange = function(){
+            if(this.value === '__OTRO__'){ this.style.display = 'none'; customInp.style.display = 'block'; customInp.name = 'modelo'; sel.name = ''; }
         };
-        sel.name='modelo';
+        sel.name = 'modelo';
     }
 
-    function handleCustomSelect(sel,inputId,hidId){
-        const inp=document.getElementById(inputId);
-        if(sel.value==='__OTRA__'){sel.style.display='none';inp.style.display='block';inp.focus();}
+    function handleCustomSelect(sel, inputId, hidId){
+        const inp = document.getElementById(inputId);
+        if(sel.value === '__OTRA__'){ sel.style.display = 'none'; inp.style.display = 'block'; inp.focus(); }
     }
 
-    function toggleCargadorBox(chk){
-        document.getElementById('cargadorBox').style.display=chk.checked?'block':'none';
-    }
-    function toggleCargadorDetail(hdr){
-        const b=hdr.nextElementSibling;
-        b.classList.toggle('open');
-    }
+    function toggleCargadorBox(chk){ document.getElementById('cargadorBox').style.display = chk.checked ? 'block' : 'none'; }
+    function toggleCargadorDetail(hdr){ hdr.nextElementSibling.classList.toggle('open'); }
 
     function addPeriferico(tipo){
-        const list=document.getElementById('perifericosList');
-        const i=pCount++;
-        const div=document.createElement('div');
-        div.className='periferico-row';
-        div.id='p_'+i;
-        div.innerHTML=`
-    <div class="periferico-header">
-      <span class="periferico-tipo-label">${tipo}</span>
-      <button type="button" class="btn-remove" onclick="document.getElementById('p_${i}').remove()">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <div class="periferico-fields">
-      <div class="form-group">
-        <label>Tipo</label>
-        <select class="fc" name="perifericos[${i}].tipo">
-          <option value="Monitor"${tipo==='Monitor'?' selected':''}>Monitor</option>
-          <option value="Teclado"${tipo==='Teclado'?' selected':''}>Teclado</option>
-          <option value="Mouse"${tipo==='Mouse'?' selected':''}>Mouse</option>
-          <option value="Mouse Pad"${tipo==='Mouse Pad'?' selected':''}>Mouse Pad</option>
-          <option value="Auriculares"${tipo==='Auriculares'?' selected':''}>Auriculares</option>
-          <option value="Hub USB"${tipo==='Hub USB'?' selected':''}>Hub / Extensor USB</option>
-          <option value="UPS"${tipo==='UPS'?' selected':''}>UPS</option>
-          <option value="Otro"${tipo==='Otro'?' selected':''}>Otro</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Marca</label>
-        <input type="text" class="fc" name="perifericos[${i}].marca" placeholder="Marca"/>
-      </div>
-      <div class="form-group">
-        <label>Modelo</label>
-        <input type="text" class="fc" name="perifericos[${i}].modelo" placeholder="Modelo"/>
-      </div>
-      <div class="form-group">
-        <label>Serial</label>
-        <input type="text" class="fc" name="perifericos[${i}].serial" placeholder="Número de serie"/>
-      </div>
-    </div>`;
+        const list = document.getElementById('perifericosList');
+        const i = pCount++;
+        const div = document.createElement('div');
+        div.className = 'periferico-row';
+        div.id = 'p_'+i;
+        div.innerHTML = `
+            <div class="periferico-header">
+                <span class="periferico-tipo-label">${tipo}</span>
+                <button type="button" class="btn-remove" onclick="document.getElementById('p_${i}').remove()">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="periferico-fields">
+                <div class="form-group">
+                    <label>Tipo</label>
+                    <select class="fc" name="perifericos[${i}].tipo">
+                        <option value="Monitor" ${tipo==='Monitor' ? 'selected' : ''}>Monitor</option>
+                        <option value="Teclado" ${tipo==='Teclado' ? 'selected' : ''}>Teclado</option>
+                        <option value="Mouse" ${tipo==='Mouse' ? 'selected' : ''}>Mouse</option>
+                        <option value="Mouse Pad" ${tipo==='Mouse Pad' ? 'selected' : ''}>Mouse Pad</option>
+                        <option value="Auriculares" ${tipo==='Auriculares' ? 'selected' : ''}>Auriculares</option>
+                        <option value="Hub USB" ${tipo==='Hub USB' ? 'selected' : ''}>Hub / Extensor USB</option>
+                        <option value="UPS" ${tipo==='UPS' ? 'selected' : ''}>UPS</option>
+                        <option value="Soporte de monitor" ${tipo==='Soporte de monitor' ? 'selected' : ''}>Soporte de monitor</option>
+                        <option value="Base refrigerante" ${tipo==='Base refrigerante' ? 'selected' : ''}>Base refrigerante</option>
+                        <option value="Otro" ${tipo==='Otro' ? 'selected' : ''}>Otro</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Marca</label><input type="text" class="fc" name="perifericos[${i}].marca" placeholder="Marca"/></div>
+                <div class="form-group"><label>Modelo</label><input type="text" class="fc" name="perifericos[${i}].modelo" placeholder="Modelo"/></div>
+                <div class="form-group"><label>Serial</label><input type="text" class="fc" name="perifericos[${i}].serial" placeholder="Número de serie"/></div>
+            </div>
+        `;
         list.appendChild(div);
     }
 
-    function abrirModal(id){document.getElementById(id).classList.add('open');}
-    function cerrarModal(id){document.getElementById(id).classList.remove('open');}
-    function abrirModalMarca(){abrirModal('modalMarca');setTimeout(()=>document.getElementById('inpNuevaMarca').focus(),80);}
-    function abrirModalModelo(){abrirModal('modalModelo');setTimeout(()=>document.getElementById('inpNuevoModelo').focus(),80);}
-    function abrirModalRam(){abrirModal('modalRam');setTimeout(()=>document.getElementById('inpNuevaRam').focus(),80);}
-    function abrirModalDisco(){abrirModal('modalDisco');setTimeout(()=>document.getElementById('inpNuevoDisco').focus(),80);}
+    function abrirModal(id){ document.getElementById(id).classList.add('open'); }
+    function cerrarModal(id){ document.getElementById(id).classList.remove('open'); }
+    function abrirModalMarca(){ abrirModal('modalMarca'); setTimeout(()=>document.getElementById('inpNuevaMarca').focus(),80); }
+    function abrirModalModelo(){ abrirModal('modalModelo'); setTimeout(()=>document.getElementById('inpNuevoModelo').focus(),80); }
+    function abrirModalRam(){ abrirModal('modalRam'); setTimeout(()=>document.getElementById('inpNuevaRam').focus(),80); }
+    function abrirModalDisco(){ abrirModal('modalDisco'); setTimeout(()=>document.getElementById('inpNuevoDisco').focus(),80); }
 
     function guardarNuevaMarca(){
-        const val=document.getElementById('inpNuevaMarca').value.trim();
-        if(!val)return;
-        const sel=document.getElementById('selMarca');
-        const opt=document.createElement('option');
-        opt.value=val;opt.textContent=val;
-        sel.insertBefore(opt,sel.querySelector('[value="__OTRA__"]'));
-        sel.value=val;
-        MARCAS_MODELOS[val]=[];
+        const val = document.getElementById('inpNuevaMarca').value.trim();
+        if(!val) return;
+        const sel = document.getElementById('selMarca');
+        const opt = document.createElement('option');
+        opt.value = val; opt.textContent = val;
+        sel.insertBefore(opt, sel.querySelector('[value="__OTRA__"]'));
+        sel.value = val;
+        MARCAS_MODELOS[val] = [];
         filtrarModelos(val);
         cerrarModal('modalMarca');
-        document.getElementById('inpNuevaMarca').value='';
+        document.getElementById('inpNuevaMarca').value = '';
     }
 
     function guardarNuevoModelo(){
-        const val=document.getElementById('inpNuevoModelo').value.trim();
-        if(!val)return;
-        const marcaActual=document.getElementById('selMarca').value;
-        if(marcaActual&&MARCAS_MODELOS[marcaActual]){
+        const val = document.getElementById('inpNuevoModelo').value.trim();
+        if(!val) return;
+        const marcaActual = document.getElementById('selMarca').value;
+        if(marcaActual && MARCAS_MODELOS[marcaActual]){
             MARCAS_MODELOS[marcaActual].push(val);
             filtrarModelos(marcaActual);
-            document.getElementById('selModelo').value=val;
+            document.getElementById('selModelo').value = val;
         }
         cerrarModal('modalModelo');
-        document.getElementById('inpNuevoModelo').value='';
+        document.getElementById('inpNuevoModelo').value = '';
     }
 
     function guardarNuevaRam(){
-        const val=document.getElementById('inpNuevaRam').value.trim();
-        if(!val)return;
-        const sel=document.getElementById('selRam');
-        const opt=document.createElement('option');
-        opt.value=val;opt.textContent=val;
-        sel.insertBefore(opt,sel.querySelector('[value="__OTRA__"]'));
-        sel.value=val;
+        const val = document.getElementById('inpNuevaRam').value.trim();
+        if(!val) return;
+        const sel = document.getElementById('selRam');
+        const opt = document.createElement('option');
+        opt.value = val; opt.textContent = val;
+        sel.insertBefore(opt, sel.querySelector('[value="__OTRA__"]'));
+        sel.value = val;
         cerrarModal('modalRam');
-        document.getElementById('inpNuevaRam').value='';
+        document.getElementById('inpNuevaRam').value = '';
     }
 
     function guardarNuevoDisco(){
-        const val=document.getElementById('inpNuevoDisco').value.trim();
-        if(!val)return;
-        const sel=document.getElementById('selDisco');
-        const opt=document.createElement('option');
-        opt.value=val;opt.textContent=val;
-        sel.insertBefore(opt,sel.querySelector('[value="__OTRA__"]'));
-        sel.value=val;
+        const val = document.getElementById('inpNuevoDisco').value.trim();
+        if(!val) return;
+        const sel = document.getElementById('selDisco');
+        const opt = document.createElement('option');
+        opt.value = val; opt.textContent = val;
+        sel.insertBefore(opt, sel.querySelector('[value="__OTRA__"]'));
+        sel.value = val;
         cerrarModal('modalDisco');
-        document.getElementById('inpNuevoDisco').value='';
+        document.getElementById('inpNuevoDisco').value = '';
     }
 
-    document.querySelectorAll('.modal-overlay').forEach(o=>{
-        o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});
-    });
+    document.querySelectorAll('.modal-overlay').forEach(o => { o.addEventListener('click', e => { if(e.target === o) o.classList.remove('open'); }); });
 
     document.getElementById('frmEquipo').addEventListener('submit',function(){
-        const ramSel=document.getElementById('selRam');
-        const ramInp=document.getElementById('inpRamCustom');
-        const hidRam=document.getElementById('hidRam');
-        hidRam.value=(ramInp.style.display!=='none')?ramInp.value:ramSel.value;
-        const discoSel=document.getElementById('selDisco');
-        const discoInp=document.getElementById('inpDiscoCustom');
-        const hidDisco=document.getElementById('hidDisco');
-        hidDisco.value=(discoInp.style.display!=='none')?discoInp.value:discoSel.value;
+        const ramSel = document.getElementById('selRam');
+        const ramInp = document.getElementById('inpRamCustom');
+        const hidRam = document.getElementById('hidRam');
+        hidRam.value = (ramInp.style.display !== 'none') ? ramInp.value : ramSel.value;
+        const discoSel = document.getElementById('selDisco');
+        const discoInp = document.getElementById('inpDiscoCustom');
+        const hidDisco = document.getElementById('hidDisco');
+        hidDisco.value = (discoInp.style.display !== 'none') ? discoInp.value : discoSel.value;
     });
 
-    // Enfocar el primer campo con error si existe
     document.addEventListener('DOMContentLoaded', function() {
-        var firstError = document.querySelector('.fc.error');
-        if (firstError) {
-            firstError.focus();
-        }
+        const firstError = document.querySelector('.fc.error');
+        if(firstError) firstError.focus();
+    });
+
+    // Sidebar toggle
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const main = document.getElementById('main');
+    menuToggle.addEventListener('click', () => {
+        if(window.innerWidth <= 768) sidebar.classList.toggle('collapsed');
+        else { sidebar.classList.toggle('collapsed'); main.classList.toggle('full'); }
     });
 </script>
 </body>

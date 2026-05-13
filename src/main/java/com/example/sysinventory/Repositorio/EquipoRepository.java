@@ -19,6 +19,9 @@ public interface EquipoRepository extends MongoRepository<Equipo, String> {
     List<Equipo> findByEstado(String estado);
 
     List<Equipo> findByResponsableContainingIgnoreCase(String responsable);
-    List<Equipo> findByAreaAndCargo(String area, String cargo);
-}
 
+    List<Equipo> findByAreaAndCargo(String area, String cargo);
+
+    // NUEVO: contar equipos por área (para el contador incremental)
+    long countByArea(String area);
+}
