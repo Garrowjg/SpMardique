@@ -113,6 +113,19 @@ public class EquipoWebController {
         long activos       = equipos.stream().filter(e -> "Activo".equals(e.getEstado())).count();
         long mantenimiento = equipos.stream().filter(e -> "En mantenimiento".equals(e.getEstado())).count();
         long baja          = equipos.stream().filter(e -> "Dado de baja".equals(e.getEstado())).count();
+        long stock         = equipos.stream().filter(e -> "En stock".equals(e.getEstado())).count();
+        long totalEquipos  = equipos.size();
+
+        long incidentes = mantenimiento + baja;
+        long areasActivas = equipos.stream()
+                .filter(e -> "Activo".equals(e.getEstado()) && e.getArea() != null && !e.getArea().isBlank())
+                .map(Equipo::getArea)
+                .distinct()
+                .count();
+        int disponibilidad = totalEquipos > 0 ? (int)(activos * 100 / totalEquipos) : 0;
+        String rendimientoTexto = disponibilidad >= 90 ? "Óptimo" :
+                disponibilidad >= 70 ? "Bueno" :
+                disponibilidad >= 50 ? "Regular" : "Crítico";
 
         Map<String, List<Equipo>> porArea = equipos.stream()
                 .filter(e -> e.getArea() != null && !e.getArea().isBlank())
@@ -120,35 +133,35 @@ public class EquipoWebController {
 
         StringBuilder areasHtml = new StringBuilder();
         areasHtml.append("<table class='clean'>");
-        areasHtml.append("<thead><tr><th>Área</th><th>Total</th><th>Activos</th><th>Mantenimiento</th><th>Baja</th></tr></thead>");
+        areasHtml.append("<thead><tr><th>Área</th><th>Total</th><th>Activos</th><th>Mantenimiento</th></tr></thead>");
         areasHtml.append("<tbody>");
         for (Map.Entry<String, List<Equipo>> entry : porArea.entrySet()) {
             String area = entry.getKey();
             List<Equipo> lista = entry.getValue();
             long a = lista.stream().filter(e -> "Activo".equals(e.getEstado())).count();
             long m = lista.stream().filter(e -> "En mantenimiento".equals(e.getEstado())).count();
-            long b = lista.stream().filter(e -> "Dado de baja".equals(e.getEstado())).count();
             areasHtml.append("<tr>")
                     .append("<td>").append(area).append("</td>")
                     .append("<td>").append(lista.size()).append("</td>")
                     .append("<td>").append(a).append("</td>")
                     .append("<td>").append(m).append("</td>")
-                    .append("<td>").append(b).append("</td>")
                     .append("</tr>");
         }
         areasHtml.append("</tbody>");
-        areasHtml.append("<table>");
+        areasHtml.append("</table>");
 
         StringBuilder barrasHtml = new StringBuilder();
-        long total = activos + mantenimiento + baja;
+        long total = activos + mantenimiento + baja + stock;
         if (total > 0) {
             int pctActivos = (int)(activos * 100 / total);
             int pctMantenimiento = (int)(mantenimiento * 100 / total);
             int pctBaja = (int)(baja * 100 / total);
+            int pctStock = (int)(stock * 100 / total);
             barrasHtml.append("<div style='display:flex;flex-direction:column;gap:.8rem;'>");
             barrasHtml.append("<div style='display:flex;align-items:center;gap:.8rem;'><span style='width:80px;font-size:.85rem;'>Activos</span><div style='flex:1;height:18px;background:#E2E8F0;border-radius:9px;overflow:hidden;'><div style='width:").append(pctActivos).append("%;height:100%;background:var(--green);border-radius:9px;'></div></div><span style='font-size:.85rem;font-weight:600;'>").append(pctActivos).append("%</span></div>");
             barrasHtml.append("<div style='display:flex;align-items:center;gap:.8rem;'><span style='width:80px;font-size:.85rem;'>Mantenimiento</span><div style='flex:1;height:18px;background:#E2E8F0;border-radius:9px;overflow:hidden;'><div style='width:").append(pctMantenimiento).append("%;height:100%;background:var(--orange);border-radius:9px;'></div></div><span style='font-size:.85rem;font-weight:600;'>").append(pctMantenimiento).append("%</span></div>");
             barrasHtml.append("<div style='display:flex;align-items:center;gap:.8rem;'><span style='width:80px;font-size:.85rem;'>Baja</span><div style='flex:1;height:18px;background:#E2E8F0;border-radius:9px;overflow:hidden;'><div style='width:").append(pctBaja).append("%;height:100%;background:var(--red);border-radius:9px;'></div></div><span style='font-size:.85rem;font-weight:600;'>").append(pctBaja).append("%</span></div>");
+            barrasHtml.append("<div style='display:flex;align-items:center;gap:.8rem;'><span style='width:80px;font-size:.85rem;'>Stock</span><div style='flex:1;height:18px;background:#E2E8F0;border-radius:9px;overflow:hidden;'><div style='width:").append(pctStock).append("%;height:100%;background:var(--cyan);border-radius:9px;'></div></div><span style='font-size:.85rem;font-weight:600;'>").append(pctStock).append("%</span></div>");
             barrasHtml.append("</div>");
         } else {
             barrasHtml.append("<p style='color:var(--muted);'>Sin datos de distribución.</p>");
@@ -166,19 +179,26 @@ public class EquipoWebController {
             String color = "var(--green)";
             if("En mantenimiento".equals(eq.getEstado())) color = "var(--orange)";
             if("Dado de baja".equals(eq.getEstado())) color = "var(--red)";
+            if("En stock".equals(eq.getEstado())) color = "var(--cyan)";
+            String responsableMostrar = eq.getResponsable() != null ? eq.getResponsable() : "Desconocido";
             ultimosHtml.append("<div style='display:flex;align-items:center;gap:.5rem;padding:.4rem .8rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;'>");
             ultimosHtml.append("<div style='width:8px;height:8px;border-radius:50%;background:").append(color).append(";'></div>");
             ultimosHtml.append("<span style='font-weight:600;'>").append(eq.getCodigo()).append("</span>");
-            ultimosHtml.append("<span style='color:var(--muted);'>— ").append(eq.getResponsable()).append("</span>");
+            ultimosHtml.append("<span style='color:var(--muted);'>— ").append(responsableMostrar).append("</span>");
             ultimosHtml.append("</div>");
         }
         ultimosHtml.append("</div>");
 
         agregarDatosUsuario(model);
-        model.addAttribute("totalEquipos", equipos.size());
+        model.addAttribute("totalEquipos", totalEquipos);
         model.addAttribute("activos", activos);
         model.addAttribute("enMantenimiento", mantenimiento);
         model.addAttribute("dadosDeBaja", baja);
+        model.addAttribute("stock", stock);
+        model.addAttribute("incidentes", incidentes);
+        model.addAttribute("areasActivas", areasActivas);
+        model.addAttribute("disponibilidad", disponibilidad);
+        model.addAttribute("rendimientoTexto", rendimientoTexto);
         model.addAttribute("areasHtml", areasHtml.toString());
         model.addAttribute("barrasHtml", barrasHtml.toString());
         model.addAttribute("ultimosHtml", ultimosHtml.toString());
@@ -213,7 +233,7 @@ public class EquipoWebController {
             tablaHtml.append("<td>").append(serial).append("</td>");
             tablaHtml.append("<td>").append(estado).append("</td>");
             tablaHtml.append("<td><a href='/equipo/").append(codigo).append("' style='color:var(--blue);text-decoration:none;font-weight:500'>Ver ficha</a></td>");
-            tablaHtml.append("<tr>");
+            tablaHtml.append("</tr>");
         }
         tablaHtml.append("</tbody>");
         tablaHtml.append("</table>");
@@ -284,7 +304,6 @@ public class EquipoWebController {
     }
 
     // ================= ACCIONES SOBRE EQUIPOS =================
-    // CORREGIDO: capturar el equipo actualizado y redirigir con su nuevo código
     @PostMapping("/equipos/{codigo}/propietario")
     public String cambiarPropietario(@PathVariable String codigo,
                                      @ModelAttribute("cambioPropietarioDTO") CambioPropietarioDTO dto,
@@ -345,6 +364,7 @@ public class EquipoWebController {
         redirectAttrs.addFlashAttribute("mensaje", "Equipo puesto en stock");
         return "redirect:/equipo/" + equipoActualizado.getCodigo();
     }
+
     @PostMapping("/equipos/{codigo}/periferico/{index}")
     public String eliminarPeriferico(@PathVariable String codigo,
                                      @PathVariable int index,
@@ -352,6 +372,19 @@ public class EquipoWebController {
                                      RedirectAttributes redirectAttrs) {
         equipoService.eliminarPeriferico(codigo, index, motivo);
         redirectAttrs.addFlashAttribute("mensaje", "Periférico eliminado correctamente");
+        return "redirect:/equipo/" + codigo;
+    }
+
+    // ================= NUEVO: AGREGAR PERIFÉRICO =================
+    @PostMapping("/equipos/{codigo}/periferico/agregar")
+    public String agregarPeriferico(@PathVariable String codigo,
+                                    @RequestParam String tipo,
+                                    @RequestParam(required = false) String marca,
+                                    @RequestParam(required = false) String modelo,
+                                    @RequestParam(required = false) String serial,
+                                    RedirectAttributes redirectAttrs) {
+        equipoService.agregarPeriferico(codigo, tipo, marca, modelo, serial);
+        redirectAttrs.addFlashAttribute("mensaje", "Periférico agregado correctamente");
         return "redirect:/equipo/" + codigo;
     }
 }

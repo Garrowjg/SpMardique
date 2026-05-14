@@ -205,7 +205,6 @@ public class EquipoService {
         return equipoRepository.save(equipo);
     }
 
-    // MODIFICADO: acepta motivo y registra persona anterior
     public Equipo ponerEnMantenimiento(String codigo, String motivo) {
         Equipo equipo = buscarPorCodigo(codigo);
         equipo.setEstado("En mantenimiento");
@@ -223,7 +222,6 @@ public class EquipoService {
         return equipoRepository.save(equipo);
     }
 
-    // MODIFICADO: acepta motivo y registra persona anterior
     public Equipo ponerEnStock(String codigo, String motivo) {
         Equipo equipo = buscarPorCodigo(codigo);
         String responsableAnterior = equipo.getResponsable() != null ? equipo.getResponsable() : "Desconocido";
@@ -239,7 +237,6 @@ public class EquipoService {
         equipo.setFechaEntrega(null);
         equipo.setEsPrestamo(false);
         equipo.setObservaciones("Equipo en stock - " + (equipo.getObservaciones() != null ? equipo.getObservaciones() : ""));
-
         equipo.setEstado("En stock");
 
         String evento = "Equipo puesto en stock. Código anterior: " + codigo
@@ -251,7 +248,6 @@ public class EquipoService {
         return equipoRepository.save(equipo);
     }
 
-    // MODIFICADO: acepta motivo y registra persona anterior
     public Equipo darDeBaja(String codigo, String motivo) {
         Equipo equipo = buscarPorCodigo(codigo);
         String responsableAnterior = equipo.getResponsable() != null ? equipo.getResponsable() : "Desconocido";
@@ -267,7 +263,6 @@ public class EquipoService {
         equipo.setFechaEntrega(null);
         equipo.setEsPrestamo(false);
         equipo.setObservaciones("Equipo dado de baja - " + (equipo.getObservaciones() != null ? equipo.getObservaciones() : ""));
-
         equipo.setEstado("Dado de baja");
 
         String evento = "Equipo dado de baja. Código anterior: " + codigo
@@ -298,6 +293,48 @@ public class EquipoService {
         return qrGenerador.generarBytes(codigo);
     }
 
+    public Equipo eliminarPeriferico(String codigo, int index, String motivo) {
+        Equipo equipo = buscarPorCodigo(codigo);
+        if (index >= 0 && index < equipo.getPerifericos().size()) {
+            Periferico eliminado = equipo.getPerifericos().remove(index);
+            String descripcion = "Periférico eliminado: " + eliminado.getTipo()
+                    + " (Marca: " + (eliminado.getMarca() != null ? eliminado.getMarca() : "N/A")
+                    + ", Serial: " + (eliminado.getSerial() != null ? eliminado.getSerial() : "N/A") + ")"
+                    + (motivo != null && !motivo.isBlank() ? " | Motivo: " + motivo : "");
+            equipo.getHistorial().add(nuevoEvento(descripcion, "Sistema", "GENERAL"));
+            return equipoRepository.save(equipo);
+        } else {
+            throw new RuntimeException("Índice de periférico inválido");
+        }
+    }
+
+    // ================= NUEVO: AGREGAR PERIFÉRICO =================
+    public Equipo agregarPeriferico(String codigo, String tipo, String marca, String modelo, String serial) {
+        Equipo equipo = buscarPorCodigo(codigo);
+
+        if (equipo.getPerifericos() == null) {
+            equipo.setPerifericos(new ArrayList<>());
+        }
+
+        Periferico peri = new Periferico();
+        peri.setTipo(tipo);
+        peri.setMarca(marca != null && !marca.isBlank() ? marca : null);
+        peri.setModelo(modelo != null && !modelo.isBlank() ? modelo : null);
+        peri.setSerial(serial != null && !serial.isBlank() ? serial : null);
+
+        equipo.getPerifericos().add(peri);
+
+        String descripcion = "Periférico agregado: " + tipo
+                + (marca != null && !marca.isBlank() ? " " + marca : "")
+                + (modelo != null && !modelo.isBlank() ? " " + modelo : "")
+                + (serial != null && !serial.isBlank() ? " (S/N: " + serial + ")" : "");
+        equipo.getHistorial().add(nuevoEvento(descripcion, "Sistema", "GENERAL"));
+
+        return equipoRepository.save(equipo);
+    }
+
+    // ================= PRIVADOS =================
+
     private HistorialEvento nuevoEvento(String evento, String ingeniero, String tipo) {
         HistorialEvento ev = new HistorialEvento();
         ev.setFecha(LocalDate.now());
@@ -321,19 +358,5 @@ public class EquipoService {
         }
         int next = maxNum + 1;
         return String.format("%s-%03d", prefijo, next);
-    }
-    public Equipo eliminarPeriferico(String codigo, int index, String motivo) {
-        Equipo equipo = buscarPorCodigo(codigo);
-        if (index >= 0 && index < equipo.getPerifericos().size()) {
-            Periferico eliminado = equipo.getPerifericos().remove(index);
-            String descripcion = "Periférico eliminado: " + eliminado.getTipo()
-                    + " (Marca: " + (eliminado.getMarca() != null ? eliminado.getMarca() : "N/A")
-                    + ", Serial: " + (eliminado.getSerial() != null ? eliminado.getSerial() : "N/A") + ")"
-                    + (motivo != null && !motivo.isBlank() ? " | Motivo: " + motivo : "");
-            equipo.getHistorial().add(nuevoEvento(descripcion, "Sistema", "GENERAL"));
-            return equipoRepository.save(equipo);
-        } else {
-            throw new RuntimeException("Índice de periférico inválido");
-        }
     }
 }

@@ -2,7 +2,7 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title th:text="${equipo.codigo} + ' · SysInventory | Mardique'">Ficha de equipo</title>
     <style>
         :root{
@@ -40,7 +40,7 @@
         .s-link.active{background:linear-gradient(90deg,rgba(196,154,40,.20),rgba(196,154,40,.06));color:#fff;border:1px solid rgba(196,154,40,.35)}
         .s-link.active::before{content:'';position:absolute;left:-8px;width:4px;height:24px;border-radius:10px;background:var(--gold)}
         .s-bottom{margin-top:auto;padding:1.3rem;color:rgba(255,255,255,.28);font-size:.72rem;border-top:1px solid rgba(255,255,255,.06)}
-        .main{margin-left:260px;flex:1;display:flex;flex-direction:column;transition:margin-left .3s ease}
+        .main{margin-left:260px;flex:1;display:flex;flex-direction:column;transition:margin-left .3s ease;min-width:0}
         .main.full{margin-left:0}
         .topbar{height:72px;background:rgba(255,255,255,.78);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:space-between;padding:0 1.8rem;position:sticky;top:0;z-index:100}
         .topbar-left{display:flex;align-items:center;gap:1rem}
@@ -61,9 +61,11 @@
         .page{padding:2rem}
         .bc{display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:var(--muted);margin-bottom:1.4rem}
         .bc a{color:var(--muted);text-decoration:none}.bc a:hover{color:var(--gold)}
-        .ph{margin-bottom:1.6rem;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem}
-        .code-tag{font-family:monospace;font-size:1.5rem;font-weight:700;color:var(--blue);letter-spacing:.04em}
-        .ph-sub{color:var(--muted);font-size:.88rem;margin-top:.25rem}
+        .hero{background:radial-gradient(circle at top right, rgba(25,146,212,.16), transparent 35%),radial-gradient(circle at left bottom, rgba(196,154,40,.18), transparent 30%),linear-gradient(135deg,#111827 0%, #1E293B 100%);border-radius:28px;padding:2rem;margin-bottom:1.8rem;position:relative;overflow:hidden;color:white;box-shadow:var(--shadow)}
+        .hero::after{content:'';position:absolute;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,.04);right:-120px;top:-120px}
+        .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap}
+        .hero h1{font-size:1.5rem;font-weight:800;margin-bottom:.25rem}
+        .hero p{color:rgba(255,255,255,.75);max-width:700px;line-height:1.5;font-size:.85rem}
         .action-bar{display:flex;gap:.6rem;flex-wrap:wrap}
         .btn{display:inline-flex;align-items:center;gap:.4rem;padding:.48rem 1rem;border-radius:8px;font-size:.83rem;font-weight:600;border:none;cursor:pointer;text-decoration:none;transition:all .18s;white-space:nowrap}
         .btn svg{width:14px;height:14px;flex-shrink:0}
@@ -124,14 +126,179 @@
         .fc:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(196,154,40,.12)}
         select.fc{cursor:pointer}
         .empty-h{color:var(--muted);font-size:.86rem;font-style:italic;padding:.5rem 0}
-        @media print{body *{visibility:hidden}#ticketPrint,#ticketPrint *{visibility:visible}#ticketPrint{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#fff}}
-        #ticketPrint{display:none}
-        .ticket-inner{width:210px;border:2px solid #000;border-radius:10px;padding:1rem;text-align:center;background:#fff;font-family:'Segoe UI',sans-serif}
-        .ticket-logo-img{width:100px;margin-bottom:0.3rem}
-        .ticket-logo-text{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#555;margin-bottom:.4rem}
-        .ticket-code{font-family:monospace;font-size:1.05rem;font-weight:800;margin:.35rem 0;letter-spacing:.04em}
-        .ticket-qr{width:125px;height:125px;margin:.45rem auto}
-        .ticket-info{font-size:.62rem;color:#555;margin-top:.4rem;line-height:1.5}
+        /* ── TICKET / ETIQUETA ── */
+        #ticketPrint { display: none; }
+
+        @media print {
+            body * { visibility: hidden; }
+            #ticketPrint { visibility: visible; display: block !important; }
+            #ticketPrint * { visibility: visible; }
+            #ticketPrint {
+                position: fixed;
+                inset: 0;
+                margin: 0;
+                padding: 0;
+                background: #fff;
+                display: flex !important;
+                align-items: center;
+                justify-content: center;
+            }
+            @page { size: 9cm 5cm landscape; margin: 0; }
+        }
+
+        .ticket-inner {
+            width: 370px;
+            height: 207px;
+            background: #fff;
+            border: 1.5px solid #b0bac6;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            position: relative;
+            box-shadow: 0 6px 24px rgba(0,0,0,.18);
+        }
+
+        /* Franja superior negra — imprime limpio en B&N */
+        .tk-top-stripe {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3.5px;
+            background: #0D1B2A;
+            z-index: 10;
+        }
+
+        /* LEFT: dark panel — más ancho para logo más grande */
+        .tk-left {
+            width: 100px;
+            flex-shrink: 0;
+            background: #0D1B2A;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem .6rem .8rem .6rem;
+            gap: .55rem;
+            position: relative;
+            z-index: 2;
+            overflow: hidden;
+        }
+        /* Textura sutil de puntos — visible solo en pantalla */
+        .tk-left::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle, rgba(255,255,255,.045) 1px, transparent 1px);
+            background-size: 8px 8px;
+            z-index: 0;
+        }
+        /* Logo más grande: 70px en lugar de 56px */
+        .tk-logo { width: 70px; object-fit: contain; position: relative; z-index: 2; }
+        .tk-logo-fallback { font-size: .68rem; font-weight: 800; color: #fff; text-align: center; letter-spacing: .06em; line-height: 1.3; text-transform: uppercase; position: relative; z-index: 2; }
+        .tk-divider { width: 34px; height: 1.5px; background: #C49A28; border-radius: 1px; position: relative; z-index: 2; }
+        .tk-brand { font-size: .42rem; font-weight: 600; color: rgba(255,255,255,.42); text-transform: uppercase; letter-spacing: .1em; text-align: center; line-height: 1.4; position: relative; z-index: 2; }
+
+        /* CENTER */
+        .tk-center {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: .85rem .4rem .85rem .8rem;
+            gap: .2rem;
+            min-width: 0;
+            position: relative;
+            z-index: 2;
+        }
+        .tk-eyebrow {
+            font-size: .42rem;
+            font-weight: 700;
+            color: #7A8899;
+            text-transform: uppercase;
+            letter-spacing: .14em;
+        }
+        .tk-code {
+            font-family: 'Courier New', monospace;
+            font-size: .88rem;
+            font-weight: 800;
+            color: #0D1B2A;
+            letter-spacing: .02em;
+            line-height: 1.1;
+            white-space: nowrap;
+        }
+        .tk-gold-line {
+            width: 100%;
+            height: 1.5px;
+            background: linear-gradient(90deg, #C49A28 0%, rgba(196,154,40,0) 100%);
+            margin: .18rem 0;
+        }
+        .tk-rows { display: flex; flex-direction: column; gap: .2rem; }
+        .tk-row { display: flex; align-items: baseline; gap: .35rem; min-width: 0; }
+        .tk-row-lbl {
+            font-size: .42rem; font-weight: 700;
+            color: #8A9BB0; text-transform: uppercase;
+            letter-spacing: .09em; flex-shrink: 0; width: 38px;
+        }
+        .tk-row-val {
+            font-size: .60rem; font-weight: 600;
+            color: #1C2833;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        /* Serial en monoespaciada para mejor legibilidad */
+        .tk-serial-val {
+            font-family: 'Courier New', monospace;
+            font-size: .56rem; font-weight: 700;
+            color: #3A4A5C;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            letter-spacing: .03em;
+        }
+        /* Línea inferior con código repetido */
+        .tk-footer {
+            position: absolute;
+            bottom: 6px; left: 108px; right: 92px;
+            font-family: 'Courier New', monospace;
+            font-size: .32rem;
+            color: #C0C8D4;
+            letter-spacing: .08em;
+            text-align: center;
+            z-index: 3;
+        }
+
+        /* RIGHT: QR */
+        .tk-right {
+            width: 90px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: .7rem .65rem .7rem .15rem;
+            gap: .28rem;
+            position: relative;
+            z-index: 2;
+        }
+        .tk-qr-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: .28rem;
+        }
+        /* QR más grande y sin decoraciones */
+        .tk-qr {
+            width: 76px; height: 76px;
+            border: 1.5px solid #C8D0DA;
+            border-radius: 5px;
+            padding: 2px;
+            background: #fff;
+        }
+        .tk-qr-label {
+            font-size: .32rem;
+            font-weight: 700;
+            color: #A0AABB;
+            text-transform: uppercase;
+            letter-spacing: .12em;
+        }
+        .tk-scan-lbl { display: none; }
         .btn-remove-peri {
             position: absolute;
             top: 8px;
@@ -156,23 +323,78 @@
             width: 13px;
             height: 13px;
         }
+        /* ===== OVERLAY para cerrar sidebar en móvil ===== */
+        .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:199;backdrop-filter:blur(2px)}
+        .sidebar-overlay.active{display:block}
+
         @media(max-width:768px){
-            .sidebar{transform:translateX(-100%)}
-            .sidebar.collapsed{transform:translateX(0)}
-            .main{margin-left:0}
-            .page{padding:1rem}
+            /* Evitar overflow horizontal global */
+            html, body{overflow-x:hidden;width:100%}
+
+            /* Sidebar: oculto por defecto */
+            .sidebar{transform:translateX(-260px)}
+            .sidebar.open{transform:translateX(0)}
+
+            /* Main: sin margen, ancho completo */
+            .main{margin-left:0 !important;width:100%;min-width:0}
+
+            /* Topbar compacto */
+            .topbar{height:60px;padding:0 .85rem;width:100%}
+            .logo-top-text{font-size:.85rem}
+            .topbar-title{display:none}
+            .topbar-right{gap:.4rem;flex-shrink:0}
+            .topbar-left{gap:.6rem;min-width:0;flex:1}
+
+            /* Ocultar detalles de usuario */
             .user-details{display:none}
+            .user-info{padding:.35rem .35rem;flex-shrink:0}
+
+            /* Botón logout: solo ícono */
+            .btn-logout{padding:.5rem .5rem;border-radius:10px;flex-shrink:0}
             .btn-logout span{display:none}
+            .btn-logout svg{width:18px;height:18px;display:block}
+
+            /* Página */
+            .page{padding:.85rem;width:100%;box-sizing:border-box}
+
+            /* Breadcrumb */
+            .bc{font-size:.72rem;flex-wrap:wrap;gap:.3rem;margin-bottom:.85rem}
+
+            /* Hero */
+            .hero{padding:1rem 1.1rem;margin-bottom:1rem;border-radius:16px;overflow:hidden}
+            .hero::after{display:none} /* quitar círculo desbordante */
+            .hero h1{font-size:1.15rem;word-break:break-word}
+            .hero p{font-size:.8rem}
+            .hero-top{flex-direction:column;gap:.6rem}
+
+            /* Action bar: columna, sin nowrap */
+            .action-bar{flex-direction:column;width:100%;gap:.5rem}
+            .btn{width:100%;justify-content:center;white-space:normal;text-align:center}
+
+            /* Ficha grid: 1 columna */
             .ficha-grid{grid-template-columns:1fr}
-            .form-row.c3,.form-row.c4,.form-row.c2a{grid-template-columns:1fr}
-            .action-bar{flex-direction:column}
-            .btn{width:100%;justify-content:center}
-            .ph{flex-direction:column;align-items:flex-start}
+
+            /* Formularios: 1 columna */
+            .form-row.c2,.form-row.c3,.form-row.c4,.form-row.c2a{grid-template-columns:1fr}
+
+            /* QR */
+            .qr-wrap{padding:.5rem 0}
+            .qr-img{width:130px;height:130px}
+
+            /* Tabla historial scrollable */
+            .hist-tbl{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+            /* Panel headers */
+            .ph2{flex-wrap:wrap;gap:.5rem}
+
+            /* Periféricos */
+            .perifericos-grid{grid-template-columns:1fr}
         }
     </style>
 </head>
 <body>
 
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 <aside class="sidebar" id="sidebar">
     <div class="s-logo">
         <img class="s-logo-img" src="/img/logo.png" alt="Mardique"/>
@@ -236,22 +458,25 @@
             <span th:text="${mensaje}"></span>
         </div>
 
-        <div class="ph">
-            <div>
-                <div class="code-tag" th:text="${equipo.codigo}"></div>
-                <div class="ph-sub" th:text="${equipo.responsable != null ? equipo.responsable : 'Desconocido'} + ' · ' + (${equipo.area != null ? equipo.area : 'Sin asignar'})"></div>
-            </div>
-            <div class="action-bar">
-                <button type="button" class="btn btn-blue" onclick="document.getElementById('panelPropietario').style.display='block'">Cambiar propietario</button>
-                <button type="button" class="btn btn-blue" onclick="document.getElementById('panelHardware').style.display='block'">Actualizar hardware</button>
-                <button type="button" class="btn btn-blue" th:if="${equipo.estado != 'En stock'}" onclick="abrirModalMotivo('motivoStock')">En stock</button>
-                <form id="formStock" th:action="@{/equipos/{c}/stock(c=${equipo.codigo})}" method="post" style="display:none;"><input type="hidden" name="motivo" id="motivoStock"/></form>
-                <button type="button" class="btn btn-danger" th:if="${equipo.estado != 'Dado de baja'}" onclick="abrirModalMotivo('motivoBaja')">Dar de baja</button>
-                <form id="formBaja" th:action="@{/equipos/{c}/baja(c=${equipo.codigo})}" method="post" style="display:none;"><input type="hidden" name="motivo" id="motivoBaja"/></form>
-                <button type="button" class="btn btn-warning" th:if="${equipo.estado != 'En mantenimiento'}" onclick="abrirModalMotivo('motivoMantenimiento')">Mantenimiento</button>
-                <form id="formMantenimiento" th:action="@{/equipos/{c}/mantenimiento(c=${equipo.codigo})}" method="post" style="display:none;"><input type="hidden" name="motivo" id="motivoMantenimiento"/></form>
-                <button type="button" class="btn btn-success" th:if="${equipo.estado != 'Activo'}" onclick="document.getElementById('formActivar').submit()">Marcar activo</button>
-                <form id="formActivar" th:action="@{/equipos/{c}/activar(c=${equipo.codigo})}" method="post" style="display:none;"></form>
+        <!-- HERO (igual que dashboard) -->
+        <div class="hero">
+            <div class="hero-top">
+                <div>
+                    <h1 th:text="${equipo.codigo}"></h1>
+                    <p th:text="${equipo.responsable != null ? equipo.responsable : 'Desconocido'} + ' · ' + (${equipo.area != null ? equipo.area : 'Sin asignar'})"></p>
+                </div>
+                <div class="action-bar">
+                    <button type="button" class="btn btn-blue" onclick="document.getElementById('panelPropietario').style.display='block'">Cambiar propietario</button>
+                    <button type="button" class="btn btn-blue" onclick="document.getElementById('panelHardware').style.display='block'">Actualizar hardware</button>
+                    <button type="button" class="btn btn-blue" th:if="${equipo.estado != 'En stock'}" onclick="abrirModalMotivo('motivoStock')">En stock</button>
+                    <form id="formStock" th:action="@{/equipos/{c}/stock(c=${equipo.codigo})}" method="post" style="display:none;"><input type="hidden" name="motivo" id="motivoStock"/></form>
+                    <button type="button" class="btn btn-danger" th:if="${equipo.estado != 'Dado de baja'}" onclick="abrirModalMotivo('motivoBaja')">Dar de baja</button>
+                    <form id="formBaja" th:action="@{/equipos/{c}/baja(c=${equipo.codigo})}" method="post" style="display:none;"><input type="hidden" name="motivo" id="motivoBaja"/></form>
+                    <button type="button" class="btn btn-warning" th:if="${equipo.estado != 'En mantenimiento'}" onclick="abrirModalMotivo('motivoMantenimiento')">Mantenimiento</button>
+                    <form id="formMantenimiento" th:action="@{/equipos/{c}/mantenimiento(c=${equipo.codigo})}" method="post" style="display:none;"><input type="hidden" name="motivo" id="motivoMantenimiento"/></form>
+                    <button type="button" class="btn btn-success" th:if="${equipo.estado != 'Activo'}" onclick="document.getElementById('formActivar').submit()">Marcar activo</button>
+                    <form id="formActivar" th:action="@{/equipos/{c}/activar(c=${equipo.codigo})}" method="post" style="display:none;"></form>
+                </div>
             </div>
         </div>
 
@@ -295,10 +520,7 @@
                             <div class="qr-actions">
                                 <a th:href="@{/api/equipos/{c}/qr(c=${equipo.codigo})}" class="btn btn-outline" style="justify-content:center"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Descargar QR</a>
                                 <button class="btn btn-gold" style="justify-content:center" onclick="imprimirTicket()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Imprimir etiqueta</button>
-                                <a th:href="@{/equipo/{c}/hoja(c=${equipo.codigo})}" class="btn btn-blue" style="justify-content:center">
-                                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                                    Ver hoja de vida
-                                </a>
+                                <a th:href="@{/equipo/{c}/hoja(c=${equipo.codigo})}" class="btn btn-blue" style="justify-content:center"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Ver hoja de vida</a>
                             </div>
                         </div>
                     </div>
@@ -346,28 +568,80 @@
         </div>
 
         <!-- Periféricos asociados (con botón de eliminar) -->
-        <th:block th:if="${equipo.perifericos != null and !equipo.perifericos.isEmpty()}">
-            <div class="panel">
-                <div class="ph2">
-                    <span class="ph2-title">
-                        <span class="ph2-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></span>
-                        Periféricos asociados
-                    </span>
-                </div>
-                <div class="pb">
-                    <div class="perifericos-grid">
-                        <div class="peri-card" th:each="p, iterStat : ${equipo.perifericos}">
-                            <div class="peri-tipo" th:text="${p.tipo}">—</div>
-                            <div class="peri-marca" th:text="${(p.marca != null ? p.marca : '') + ' ' + (p.modelo != null ? p.modelo : '')}">—</div>
-                            <div class="peri-serial" th:if="${p.serial != null and !p.serial.isEmpty()}" th:text="'S/N: ' + ${p.serial}">—</div>
-                            <button type="button" class="btn-remove-peri" th:data-index="${iterStat.index}" th:data-tipo="${p.tipo}" th:data-marca="${p.marca}" th:data-serial="${p.serial}" onclick="abrirModalEliminarPeriferico(this, '${equipo.codigo}', ${iterStat.index})">
-                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                            </button>
-                        </div>
+        <div class="panel" th:if="${equipo.perifericos != null and !equipo.perifericos.isEmpty()}">
+            <div class="ph2">
+                <span class="ph2-title">
+                    <span class="ph2-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></span>
+                    Periféricos asociados
+                </span>
+            </div>
+            <div class="pb">
+                <div class="perifericos-grid">
+                    <div class="peri-card" th:each="p, iterStat : ${equipo.perifericos}">
+                        <div class="peri-tipo" th:text="${p.tipo} ?: '—'">—</div>
+                        <div class="peri-marca" th:text="${(p.marca ?: '') + ' ' + (p.modelo ?: '')}">—</div>
+                        <div class="peri-serial" th:if="${p.serial != null and !p.serial.isEmpty()}" th:text="'S/N: ' + ${p.serial}">—</div>
+                        <button type="button" class="btn-remove-peri"
+                                th:data-codigo="${equipo.codigo}"
+                                th:data-index="${iterStat.index}"
+                                th:data-tipo="${p.tipo} ?: ''"
+                                th:data-marca="${p.marca} ?: ''"
+                                th:data-serial="${p.serial} ?: ''"
+                                onclick="abrirModalEliminarPeriferico(this)">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
                     </div>
                 </div>
             </div>
-        </th:block>
+        </div>
+
+        <!-- Agregar periférico -->
+        <div class="panel">
+            <div class="ph2">
+                <span class="ph2-title">
+                    <span class="ph2-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg></span>
+                    Agregar periférico
+                </span>
+            </div>
+            <div class="pb">
+                <form th:action="@{/equipos/{c}/periferico/agregar(c=${equipo.codigo})}" method="post">
+                    <div class="form-row c4">
+                        <div class="fg">
+                            <label>Tipo</label>
+                            <select name="tipo" class="fc" required>
+                                <option value="">Seleccionar tipo</option>
+                                <option value="Monitor">Monitor</option>
+                                <option value="Teclado">Teclado</option>
+                                <option value="Mouse">Mouse</option>
+                                <option value="Mouse Pad">Mouse Pad</option>
+                                <option value="Auriculares">Auriculares</option>
+                                <option value="Hub USB">Hub USB</option>
+                                <option value="UPS">UPS</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="fg">
+                            <label>Marca</label>
+                            <input type="text" name="marca" class="fc" placeholder="Ej: Asus, Logitech..."/>
+                        </div>
+                        <div class="fg">
+                            <label>Modelo</label>
+                            <input type="text" name="modelo" class="fc" placeholder="Ej: W2024, MK270..."/>
+                        </div>
+                        <div class="fg">
+                            <label>Serial</label>
+                            <input type="text" name="serial" class="fc" placeholder="Número de serie"/>
+                        </div>
+                    </div>
+                    <div class="form-row" style="grid-template-columns:auto;margin-top:.75rem;padding-top:.75rem;border-top:none;justify-items:end">
+                        <button type="submit" class="btn btn-gold">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+                            Agregar periférico
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
         <div class="panel">
             <div class="ph2"><span class="ph2-title"><span class="ph2-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>Historial de eventos</span></div>
@@ -386,7 +660,45 @@
     </div>
 </div>
 
-<div id="ticketPrint"><div class="ticket-inner"><img src="/img/logo.png" alt="Mardique" class="ticket-logo-img"/><div class="ticket-logo-text">Mardique — Inventario TI</div><div style="border-top:1px solid #ccc;margin:.3rem 0"></div><div class="ticket-code" th:text="${equipo.codigo}"></div><img th:src="'data:image/png;base64,' + ${qrBase64}" class="ticket-qr" alt="QR"/><div class="ticket-info"><div th:text="${equipo.area != null ? equipo.area : 'Sin asignar'}"></div><div th:if="${equipo.marca != null}" th:text="${equipo.marca} + ' ' + (${equipo.modelo} != null ? ${equipo.modelo} : '')"></div></div></div></div>
+<!-- ── ETIQUETA DE IMPRESIÓN (horizontal, 9×5 cm) ── -->
+<div id="ticketPrint">
+    <div class="ticket-inner">
+        <div class="tk-top-stripe"></div>
+        <div class="tk-left">
+            <img src="/img/logo.png" alt="Mardique" class="tk-logo"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='block'"/>
+            <span class="tk-logo-fallback" style="display:none">MAR<br>DIQUE</span>
+            <div class="tk-divider"></div>
+            <span class="tk-brand">Inventario<br>TI</span>
+        </div>
+        <div class="tk-center">
+            <span class="tk-eyebrow">Mardique · Sociedad Portuaria</span>
+            <span class="tk-code" th:text="${equipo.codigo}">AREA-CARGO-01</span>
+            <div class="tk-gold-line"></div>
+            <div class="tk-rows">
+                <div class="tk-row">
+                    <span class="tk-row-lbl">Área</span>
+                    <span class="tk-row-val" th:text="${equipo.area != null ? equipo.area : 'Sin asignar'}">Área</span>
+                </div>
+                <div class="tk-row">
+                    <span class="tk-row-lbl">Equipo</span>
+                    <span class="tk-row-val" th:text="${(equipo.marca != null ? equipo.marca : '') + ' ' + (equipo.modelo != null ? equipo.modelo : '')}">Marca Modelo</span>
+                </div>
+                <div class="tk-row">
+                    <span class="tk-row-lbl">Serial</span>
+                    <span class="tk-serial-val" th:text="${equipo.serial != null ? equipo.serial : 'N/A'}">S/N</span>
+                </div>
+            </div>
+        </div>
+        <div class="tk-right">
+            <div class="tk-qr-wrap">
+                <img th:src="'data:image/png;base64,' + ${qrBase64}" class="tk-qr" alt="QR Code"/>
+                <span class="tk-qr-label">Escanear</span>
+            </div>
+        </div>
+        <div class="tk-footer" th:text="${equipo.codigo}"></div>
+    </div>
+</div>
 
 <!-- Modal unificado para motivo (stock, baja, mantenimiento, eliminar periférico) -->
 <div id="modalMotivo" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;"><div style="background:white;border-radius:12px;padding:2rem;max-width:450px;width:90%;box-shadow:0 10px 30px rgba(0,0,0,0.2);"><h3 id="modalMotivoTitulo" style="font-size:1.1rem;font-weight:700;margin-bottom:1rem;">Motivo</h3><textarea id="modalMotivoTexto" style="width:100%;padding:.5rem;border:1px solid var(--border);border-radius:8px;font-size:.86rem;resize:vertical;min-height:80px;" placeholder="Escriba el motivo..."></textarea><div style="display:flex;gap:1rem;justify-content:flex-end;margin-top:1.5rem;"><button onclick="cerrarModalMotivo()" class="btn btn-outline">Cancelar</button><button id="modalMotivoConfirmar" class="btn btn-gold">Confirmar</button></div></div></div>
@@ -395,7 +707,26 @@
     const menuToggle = document.getElementById('menuToggle');
     const sidebar = document.getElementById('sidebar');
     const main = document.getElementById('main');
-    menuToggle.addEventListener('click', () => { if(window.innerWidth <= 768) sidebar.classList.toggle('collapsed'); else { sidebar.classList.toggle('collapsed'); main.classList.toggle('full'); } });
+    const overlay = document.getElementById('sidebarOverlay');
+
+    function closeSidebar() {
+        sidebar.classList.remove('open', 'collapsed');
+        overlay.classList.remove('active');
+        if (window.innerWidth > 768) main.classList.remove('full');
+    }
+
+    menuToggle.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+            const isOpen = sidebar.classList.contains('open');
+            if (isOpen) { closeSidebar(); }
+            else { sidebar.classList.add('open'); overlay.classList.add('active'); }
+        } else {
+            sidebar.classList.toggle('collapsed');
+            main.classList.toggle('full');
+        }
+    });
+
+    overlay.addEventListener('click', closeSidebar);
 
     let currentTargetInputId = null;
     let currentFormId = null;
@@ -413,9 +744,9 @@
         modal.style.display = 'flex';
     }
 
-    function abrirModalEliminarPeriferico(btn, codigo, index) {
-        currentEquipoCodigo = codigo;
-        currentPerifericoIndex = index;
+    function abrirModalEliminarPeriferico(btn) {
+        currentEquipoCodigo = btn.getAttribute('data-codigo');
+        currentPerifericoIndex = parseInt(btn.getAttribute('data-index'));
         const tipo = btn.getAttribute('data-tipo');
         const marca = btn.getAttribute('data-marca');
         const serial = btn.getAttribute('data-serial');

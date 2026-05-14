@@ -2,7 +2,7 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title th:text="${equipo.codigo} + ' - Hoja de vida · SysInventory'">Hoja de vida</title>
     <style>
         /* ========== MISMOS ESTILOS QUE TU FICHA (que sí funcionan) ========== */
@@ -80,20 +80,59 @@
         .excel-label{font-size:.8rem;color:var(--muted);font-weight:500}
         .excel-frame{height:calc(100vh - 320px);min-height:500px;background:#E5E7EB}
         .excel-frame iframe{width:100%;height:100%;border:none;background:white}
+        /* ===== OVERLAY para cerrar sidebar en móvil ===== */
+        .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:199;backdrop-filter:blur(2px)}
+        .sidebar-overlay.active{display:block}
+
         @media(max-width:768px){
-            .sidebar{transform:translateX(-100%)}
-            .sidebar.collapsed{transform:translateX(0)}
-            .main{margin-left:0}
-            .page{padding:1rem}
+            /* Sidebar: oculto por defecto, desliza desde la izquierda */
+            .sidebar{transform:translateX(-260px)}
+            .sidebar.open{transform:translateX(0)}
+
+            /* Main nunca tiene margen en móvil */
+            .main{margin-left:0 !important}
+
+            /* Topbar más compacto */
+            .topbar{height:60px;padding:0 1rem}
+            .logo-top-text{font-size:.85rem}
+            .topbar-title{display:none}
+
+            /* Ocultar detalles de usuario pero mantener avatar */
             .user-details{display:none}
+
+            /* Botón logout: solo ícono, bien centrado */
+            .btn-logout{padding:.55rem .55rem;border-radius:10px}
             .btn-logout span{display:none}
-            .hero h1{font-size:1.3rem}
-            .excel-frame{height:calc(100vh - 280px);min-height:300px}
+            .btn-logout svg{width:18px;height:18px;display:block}
+
+            /* User info más compacto */
+            .user-info{padding:.35rem .35rem}
+
+            /* Topbar right spacing */
+            .topbar-right{gap:.5rem}
+
+            /* Página con padding móvil */
+            .page{padding:.9rem}
+
+            /* Hero compacto */
+            .hero{padding:1.1rem 1.2rem;margin-bottom:1.2rem;border-radius:20px}
+            .hero h1{font-size:1.2rem;font-weight:800}
+            .hero p{font-size:.8rem}
+            .hero-top{flex-direction:column;gap:.8rem}
+            .btn-back{font-size:.82rem;padding:.55rem .9rem;align-self:flex-start}
+            .serial-chip{font-size:.72rem;padding:.25rem .75rem}
+
+            /* Excel frame ajustado */
+            .excel-frame{height:calc(100vh - 260px);min-height:320px}
+
+            /* Breadcrumb más pequeño */
+            .bc{font-size:.72rem;flex-wrap:wrap;gap:.3rem;margin-bottom:1rem}
         }
     </style>
 </head>
 <body>
 
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 <aside class="sidebar" id="sidebar">
     <div class="s-logo">
         <img class="s-logo-img" src="/img/logo.png" alt="Mardique"/>
@@ -185,7 +224,26 @@
     const menuToggle = document.getElementById('menuToggle');
     const sidebar = document.getElementById('sidebar');
     const main = document.getElementById('main');
-    menuToggle.addEventListener('click', () => { if(window.innerWidth <= 768) sidebar.classList.toggle('collapsed'); else { sidebar.classList.toggle('collapsed'); main.classList.toggle('full'); } });
+    const overlay = document.getElementById('sidebarOverlay');
+
+    function closeSidebar() {
+        sidebar.classList.remove('open', 'collapsed');
+        overlay.classList.remove('active');
+        if (window.innerWidth > 768) main.classList.remove('full');
+    }
+
+    menuToggle.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+            const isOpen = sidebar.classList.contains('open');
+            if (isOpen) { closeSidebar(); }
+            else { sidebar.classList.add('open'); overlay.classList.add('active'); }
+        } else {
+            sidebar.classList.toggle('collapsed');
+            main.classList.toggle('full');
+        }
+    });
+
+    overlay.addEventListener('click', closeSidebar);
 </script>
 </body>
 </html>
