@@ -1,6 +1,6 @@
 package com.example.sysinventory.Config;
 
-import org.springframework.beans.factory.annotation.Value;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -14,6 +14,8 @@ import org.springframework.security.web.authentication.logout.LogoutSuccessHandl
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    private static final String TENANT_ID = "f33bed9f-22bd-4350-b7da-66bd88fc6458";
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -32,7 +34,7 @@ public class SecurityConfig {
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessHandler(logoutSuccessHandler())  // Redirige a Azure logout
+                        .logoutSuccessHandler(logoutSuccessHandler())
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
                         .deleteCookies("JSESSIONID")
@@ -49,9 +51,34 @@ public class SecurityConfig {
     @Bean
     public LogoutSuccessHandler logoutSuccessHandler() {
         return (request, response, authentication) -> {
-            String logoutUrl = "https://login.microsoftonline.com/f33bed9f-22bd-4350-b7da-66bd88fc6458/oauth2/v2.0/logout"
-                    + "?post_logout_redirect_uri=" + "http://localhost:8080/auth/login";
+            // Detecta automáticamente si estás en localhost o en Render (o cualquier otro dominio)
+            String baseUrl = getBaseUrl(request);
+            String postLogoutRedirectUri = baseUrl + "/auth/login";
+
+            String logoutUrl = "https://login.microsoftonline.com/" + TENANT_ID + "/oauth2/v2.0/logout"
+                    + "?post_logout_redirect_uri=" + postLogoutRedirectUri;
+
             response.sendRedirect(logoutUrl);
         };
+    }
+
+    /**
+     * Construye la URL base de forma dinámica según la petición entrante.
+     * Funciona tanto en localhost:8080 como en Render (https://tu-app.onrender.com).
+     */
+    private String getBaseUrl(HttpServletRequest request) {
+        String scheme = request.getScheme();             // http o https
+        String serverName = request.getServerName();     // localhost o tu-app.onrender.com
+        int serverPort = request.getServerPort();
+
+        // En producción (Render usa HTTPS en el puerto 443 estándar), omitir el puerto
+        boolean isStandardPort = (scheme.equals("http") && serverPort == 80)
+                || (scheme.equals("https") && serverPort == 443);
+
+        if (isStandardPort) {
+            return scheme + "://" + serverName;
+        } else {
+            return scheme + "://" + serverName + ":" + serverPort;
+        }
     }
 }
