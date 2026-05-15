@@ -9,9 +9,6 @@ import com.example.sysinventory.Utilidades.CodigoGenerador;
 import com.google.zxing.WriterException;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -32,16 +29,13 @@ public class EquipoWebController {
     private final EquipoService equipoService;
     private final GraphService graphService;
     private final TokenService tokenService;
-    private final OAuth2AuthorizedClientService authorizedClientService;
 
     public EquipoWebController(EquipoService equipoService,
                                GraphService graphService,
-                               TokenService tokenService,
-                               OAuth2AuthorizedClientService authorizedClientService) {
+                               TokenService tokenService) {
         this.equipoService = equipoService;
         this.graphService = graphService;
         this.tokenService = tokenService;
-        this.authorizedClientService = authorizedClientService;
     }
 
     // ================= UTILIDAD =================
@@ -72,47 +66,6 @@ public class EquipoWebController {
         model.addAttribute("userEmail", userEmail);
     }
 
-    /**
-     * Obtiene el access token OAuth2 desde múltiples fuentes, en orden de prioridad:
-     * 1. OAuth2AuthorizedClientService (fuente más confiable — funciona en PC y móvil)
-     * 2. TokenService (sesión manual, fallback)
-     * 3. HttpSession directa (último recurso)
-     *
-     * Esto resuelve el bug en móvil donde el TokenService no recibía el token.
-     */
-    private String resolverAccessToken(Authentication auth, HttpSession session) {
-        // 1. Intentar desde el cliente OAuth2 autorizado de Spring (más robusto)
-        if (auth instanceof OAuth2AuthenticationToken) {
-            OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) auth;
-            String clientRegistrationId = oauthToken.getAuthorizedClientRegistrationId(); // "azure"
-            OAuth2AuthorizedClient client = authorizedClientService.loadAuthorizedClient(
-                    clientRegistrationId,
-                    oauthToken.getName()
-            );
-            if (client != null && client.getAccessToken() != null) {
-                String token = client.getAccessToken().getTokenValue();
-                // Sincronizar con TokenService para las demás partes de la app
-                tokenService.setAccessToken(token);
-                return token;
-            }
-        }
-
-        // 2. Fallback: TokenService (sesión manual)
-        String token = tokenService.getAccessToken();
-        if (token != null && !token.isBlank()) {
-            return token;
-        }
-
-        // 3. Último recurso: sesión HTTP directa
-        token = (String) session.getAttribute("accessToken");
-        if (token != null && !token.isBlank()) {
-            tokenService.setAccessToken(token);
-            return token;
-        }
-
-        return null;
-    }
-
     // ================= REDIRECCIONES =================
     @GetMapping("/redirect/{codigo}")
     public String redirigirAExcel(@PathVariable String codigo) {
@@ -127,11 +80,13 @@ public class EquipoWebController {
                            Model model) {
         agregarDatosUsuario(model);
 
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String token = resolverAccessToken(auth, session);
-
+        String token = tokenService.getAccessToken();
         if (token == null) {
-            return "redirect:/auth/login";
+            token = (String) session.getAttribute("accessToken");
+            if (token == null) {
+                return "redirect:/auth/login";
+            }
+            tokenService.setAccessToken(token);
         }
 
         Equipo equipo = equipoService.buscarPorCodigo(codigo);
@@ -420,7 +375,7 @@ public class EquipoWebController {
         return "redirect:/equipo/" + codigo;
     }
 
-    // ================= AGREGAR PERIFÉRICO =================
+    // ================= NUEVO: AGREGAR PERIFÉRICO =================
     @PostMapping("/equipos/{codigo}/periferico/agregar")
     public String agregarPeriferico(@PathVariable String codigo,
                                     @RequestParam String tipo,

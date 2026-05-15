@@ -6,16 +6,27 @@
     <title th:text="${equipo.codigo} + ' - Hoja de vida · SysInventory'">Hoja de vida</title>
     <style>
         :root{
-            --gold:#C49A28;--gold-l:#D9B14B;--gold-d:#8C6B12;
-            --navy:#111827;--navy-2:#1E293B;--blue:#1992D4;--cyan:#27B4D8;
-            --green:#16A34A;--orange:#F59E0B;--red:#DC2626;
-            --bg:#EEF2F7;--card:#FFFFFF;--text:#1F2937;--muted:#6B7280;
-            --border:#E5E7EB;--r:18px;
-            --shadow:0 10px 25px rgba(15,23,42,.06),0 4px 10px rgba(15,23,42,.04);
+            --gold:#C49A28;
+            --gold-l:#D9B14B;
+            --gold-d:#8C6B12;
+            --navy:#111827;
+            --navy-2:#1E293B;
+            --blue:#1992D4;
+            --cyan:#27B4D8;
+            --green:#16A34A;
+            --orange:#F59E0B;
+            --red:#DC2626;
+            --bg:#EEF2F7;
+            --card:#FFFFFF;
+            --text:#1F2937;
+            --muted:#6B7280;
+            --border:#E5E7EB;
+            --r:18px;
+            --shadow:0 10px 25px rgba(15,23,42,.06), 0 4px 10px rgba(15,23,42,.04);
         }
         *{box-sizing:border-box;margin:0;padding:0}
         body{font-family:'Segoe UI',system-ui,sans-serif;background:linear-gradient(180deg,#F4F7FB 0%,#EDF2F7 100%);color:var(--text);display:flex;min-height:100vh;overflow-x:hidden}
-        .sidebar{width:260px;background:linear-gradient(180deg,#0F172A 0%,#111827 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:200;transition:transform .3s ease;border-right:1px solid rgba(255,255,255,.04)}
+        .sidebar{width:260px;background:linear-gradient(180deg,#0F172A 0%, #111827 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:200;transition:transform .3s ease;border-right:1px solid rgba(255,255,255,.04)}
         .sidebar::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--gold),#F5C84C,var(--blue))}
         .sidebar.collapsed{transform:translateX(-100%)}
         .s-logo{padding:1.6rem 1.4rem;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:.9rem}
@@ -50,7 +61,7 @@
         .page{padding:2rem}
         .bc{display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:var(--muted);margin-bottom:1.4rem}
         .bc a{color:var(--muted);text-decoration:none}.bc a:hover{color:var(--gold)}
-        .hero{background:radial-gradient(circle at top right,rgba(25,146,212,.16),transparent 35%),radial-gradient(circle at left bottom,rgba(196,154,40,.18),transparent 30%),linear-gradient(135deg,#111827 0%,#1E293B 100%);border-radius:28px;padding:1.5rem 2rem;margin-bottom:1.8rem;position:relative;overflow:hidden;color:white;box-shadow:var(--shadow)}
+        .hero{background:radial-gradient(circle at top right, rgba(25,146,212,.16), transparent 35%),radial-gradient(circle at left bottom, rgba(196,154,40,.18), transparent 30%),linear-gradient(135deg,#111827 0%, #1E293B 100%);border-radius:28px;padding:1.5rem 2rem;margin-bottom:1.8rem;position:relative;overflow:hidden;color:white;box-shadow:var(--shadow)}
         .hero::after{content:'';position:absolute;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,.04);right:-120px;top:-120px}
         .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap}
         .hero h1{font-size:1.7rem;font-weight:800;margin-bottom:.25rem}
@@ -62,31 +73,21 @@
         .excel-top{height:48px;background:#F8FAFC;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 1rem}
         .excel-left{display:flex;align-items:center;gap:.75rem}
         .excel-dot{width:12px;height:12px;border-radius:50%}
-        .dot-red{background:#EF4444}.dot-yellow{background:#F59E0B}.dot-green{background:#10B981}
+        .dot-red{background:#EF4444}
+        .dot-yellow{background:#F59E0B}
+        .dot-green{background:#10B981}
         .excel-label{font-size:.8rem;color:var(--muted);font-weight:500}
         .excel-frame{height:calc(100vh - 320px);min-height:500px;background:#E5E7EB}
         .excel-frame iframe{width:100%;height:100%;border:none;background:white}
-
-        /* ── Fallback móvil ── */
-        .mobile-fallback{
-            display:none; /* oculto por defecto, JS lo muestra en móvil */
-            flex-direction:column;align-items:center;justify-content:center;
-            gap:1.2rem;padding:2.5rem 1.5rem;text-align:center;
-            min-height:300px;
-        }
+        /* === FALLBACK PARA MÓVIL === */
+        .mobile-fallback{display:none;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;padding:2rem;text-align:center;min-height:300px}
         .mobile-fallback-icon{font-size:3rem}
-        .mobile-fallback h3{font-size:1.05rem;font-weight:700;color:var(--navy)}
-        .mobile-fallback p{font-size:.85rem;color:var(--muted);max-width:320px;line-height:1.6}
-        .btn-open-excel{
-            display:inline-flex;align-items:center;gap:.6rem;
-            background:linear-gradient(135deg,#217346,#1A5C38);
-            color:white;padding:.85rem 1.6rem;border-radius:14px;
-            font-weight:700;font-size:.9rem;text-decoration:none;
-            box-shadow:0 4px 14px rgba(33,115,70,.35);transition:.25s;
-        }
-        .btn-open-excel:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(33,115,70,.45)}
-        .btn-open-excel svg{width:20px;height:20px}
-
+        .mobile-fallback h3{font-size:1.1rem;font-weight:700;color:var(--navy)}
+        .mobile-fallback p{font-size:.85rem;color:var(--muted);max-width:320px}
+        .btn-open-excel{display:inline-flex;align-items:center;gap:.6rem;background:linear-gradient(135deg,#217346,#1A5C38);color:white;padding:.85rem 1.6rem;border-radius:14px;font-weight:700;font-size:.9rem;text-decoration:none;box-shadow:0 4px 14px rgba(33,115,70,.35);transition:.25s}
+        .btn-open-excel:hover{transform:translateY(-2px)}
+        .btn-open-excel svg{width:18px;height:18px}
+        /* ===== OVERLAY para cerrar sidebar en móvil ===== */
         .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:199;backdrop-filter:blur(2px)}
         .sidebar-overlay.active{display:block}
 
@@ -197,19 +198,16 @@
                 </div>
             </div>
 
-            <!--
-                El iframe de SharePoint no funciona en móvil porque SharePoint
-                intercepta la carga y pide login propio dentro del iframe.
-                Solución: en móvil mostramos un botón para abrir en nueva pestaña.
-            -->
-            <div class="excel-frame" id="excelDesktop">
+            <!-- Para escritorio: iframe -->
+            <div class="excel-frame" id="desktopIframe">
                 <iframe th:src="${excelEmbedUrl}" allowfullscreen></iframe>
             </div>
 
-            <div class="mobile-fallback" id="excelMobile">
+            <!-- Para móvil: botón de respaldo (oculto por defecto) -->
+            <div class="mobile-fallback" id="mobileFallback">
                 <div class="mobile-fallback-icon">📊</div>
                 <h3>Abre la hoja de vida en Excel</h3>
-                <p>Los archivos de Excel Online no se pueden mostrar directamente en móvil. Ábrelo en una nueva pestaña para verlo correctamente.</p>
+                <p>En dispositivos móviles, el archivo se abre mejor en una nueva pestaña.</p>
                 <a th:href="${excelEmbedUrl}" target="_blank" class="btn-open-excel">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                     Abrir en Excel Online
@@ -220,11 +218,10 @@
 </div>
 
 <script>
-    // ── Sidebar toggle ──
     const menuToggle = document.getElementById('menuToggle');
-    const sidebar    = document.getElementById('sidebar');
-    const main       = document.getElementById('main');
-    const overlay    = document.getElementById('sidebarOverlay');
+    const sidebar = document.getElementById('sidebar');
+    const main = document.getElementById('main');
+    const overlay = document.getElementById('sidebarOverlay');
 
     function closeSidebar() {
         sidebar.classList.remove('open', 'collapsed');
@@ -235,7 +232,8 @@
     menuToggle.addEventListener('click', () => {
         if (window.innerWidth <= 768) {
             const isOpen = sidebar.classList.contains('open');
-            isOpen ? closeSidebar() : (sidebar.classList.add('open'), overlay.classList.add('active'));
+            if (isOpen) { closeSidebar(); }
+            else { sidebar.classList.add('open'); overlay.classList.add('active'); }
         } else {
             sidebar.classList.toggle('collapsed');
             main.classList.toggle('full');
@@ -244,28 +242,27 @@
 
     overlay.addEventListener('click', closeSidebar);
 
-    // ── Detección móvil: ocultar iframe y mostrar fallback ──
-    // Se detecta por ancho Y por user-agent para cubrir tablets con pantalla ancha
+    // Detección de móvil (por ancho y user agent)
     function isMobile() {
         return window.innerWidth <= 768 ||
             /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
     }
 
-    const excelDesktop = document.getElementById('excelDesktop');
-    const excelMobile  = document.getElementById('excelMobile');
+    const desktopIframe = document.getElementById('desktopIframe');
+    const mobileFallback = document.getElementById('mobileFallback');
 
-    function applyExcelMode() {
+    function applyMobileFallback() {
         if (isMobile()) {
-            excelDesktop.style.display = 'none';
-            excelMobile.style.display  = 'flex';
+            desktopIframe.style.display = 'none';
+            mobileFallback.style.display = 'flex';
         } else {
-            excelDesktop.style.display = 'block';
-            excelMobile.style.display  = 'none';
+            desktopIframe.style.display = 'block';
+            mobileFallback.style.display = 'none';
         }
     }
 
-    applyExcelMode();
-    window.addEventListener('resize', applyExcelMode);
+    applyMobileFallback();
+    window.addEventListener('resize', applyMobileFallback);
 </script>
 </body>
 </html>
