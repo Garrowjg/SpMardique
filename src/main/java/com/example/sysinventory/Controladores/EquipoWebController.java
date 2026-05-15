@@ -181,11 +181,11 @@ public class EquipoWebController {
             if("Dado de baja".equals(eq.getEstado())) color = "var(--red)";
             if("En stock".equals(eq.getEstado())) color = "var(--cyan)";
             String responsableMostrar = eq.getResponsable() != null ? eq.getResponsable() : "Desconocido";
-            ultimosHtml.append("<div style='display:flex;align-items:center;gap:.5rem;padding:.4rem .8rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;'>");
+            ultimosHtml.append("<a href='/equipo/").append(eq.getCodigo()).append("' style='display:flex;align-items:center;gap:.5rem;padding:.4rem .8rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;text-decoration:none;color:inherit;transition:.2s;' onmouseover=\"this.style.background='#E2E8F0'\" onmouseout=\"this.style.background='var(--bg)'\">");
             ultimosHtml.append("<div style='width:8px;height:8px;border-radius:50%;background:").append(color).append(";'></div>");
             ultimosHtml.append("<span style='font-weight:600;'>").append(eq.getCodigo()).append("</span>");
             ultimosHtml.append("<span style='color:var(--muted);'>— ").append(responsableMostrar).append("</span>");
-            ultimosHtml.append("</div>");
+            ultimosHtml.append("</a>");
         }
         ultimosHtml.append("</div>");
 

@@ -466,8 +466,8 @@
                     <p th:text="${equipo.responsable != null ? equipo.responsable : 'Desconocido'} + ' · ' + (${equipo.area != null ? equipo.area : 'Sin asignar'})"></p>
                 </div>
                 <div class="action-bar">
-                    <button type="button" class="btn btn-blue" onclick="document.getElementById('panelPropietario').style.display='block'">Cambiar propietario</button>
-                    <button type="button" class="btn btn-blue" onclick="document.getElementById('panelHardware').style.display='block'">Actualizar hardware</button>
+                    <button type="button" class="btn btn-blue" onclick="abrirPanelConMotivo('panelPropietario')">Cambiar propietario</button>
+                    <button type="button" class="btn btn-blue" onclick="abrirPanelConMotivo('panelHardware')">Actualizar hardware</button>
                     <button type="button" class="btn btn-blue" th:if="${equipo.estado != 'En stock'}" onclick="abrirModalMotivo('motivoStock')">En stock</button>
                     <form id="formStock" th:action="@{/equipos/{c}/stock(c=${equipo.codigo})}" method="post" style="display:none;"><input type="hidden" name="motivo" id="motivoStock"/></form>
                     <button type="button" class="btn btn-danger" th:if="${equipo.estado != 'Dado de baja'}" onclick="abrirModalMotivo('motivoBaja')">Dar de baja</button>
@@ -756,8 +756,22 @@
         document.getElementById('modalMotivo').style.display = 'flex';
     }
 
+    // Abre modal pidiendo motivo, luego muestra el panel y hace scroll hasta él
+    let panelObjetivo = null;
+    function abrirPanelConMotivo(panelId) {
+        panelObjetivo = panelId;
+        const modal = document.getElementById('modalMotivo');
+        const titulo = document.getElementById('modalMotivoTitulo');
+        titulo.textContent = panelId === 'panelPropietario' ? 'Motivo del cambio de propietario' : 'Motivo de la actualización de hardware';
+        currentTargetInputId = null;
+        currentFormId = null;
+        document.getElementById('modalMotivoTexto').value = '';
+        modal.style.display = 'flex';
+    }
+
     function cerrarModalMotivo() {
         document.getElementById('modalMotivo').style.display = 'none';
+        panelObjetivo = null;
         currentTargetInputId = null;
         currentFormId = null;
         currentPerifericoIndex = null;
@@ -791,6 +805,21 @@
                 alert('Error de conexión: ' + error.message);
             });
             cerrarModalMotivo();
+            return;
+        }
+
+        // Caso: abrir panel de propietario o hardware con motivo pre-cargado
+        if (panelObjetivo) {
+            const panel = document.getElementById(panelObjetivo);
+            // Pre-llenar el campo motivo dentro del formulario del panel
+            const motivoInput = panel.querySelector('input[name="motivo"], textarea[name="motivo"]');
+            if (motivoInput) motivoInput.value = motivo;
+            panel.style.display = 'block';
+            cerrarModalMotivo();
+            setTimeout(() => {
+                panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 80);
+            panelObjetivo = null;
             return;
         }
 

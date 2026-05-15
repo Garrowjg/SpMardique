@@ -222,7 +222,6 @@
     </div>
 
     <div class="page">
-        <!-- Hero SIN botón "Ver todos" -->
         <div class="hero">
             <div class="hero-top">
                 <div>
@@ -301,12 +300,14 @@
         const table = document.querySelector('table.clean');
         if(!table) return;
 
+        // Convertir celdas de estado a badges
         table.querySelectorAll('tbody td:nth-child(7)').forEach(td => {
             const e = td.textContent.trim();
             const m = {'Activo':'activo','En mantenimiento':'mantenimiento','Dado de baja':'baja','En stock':'stock'};
             if(m[e]) td.innerHTML = `<span class="status ${m[e]}">${e}</span>`;
         });
 
+        // Poblar select de áreas
         const areasSet = new Set();
         table.querySelectorAll('tbody tr').forEach(r => { const a=r.getAttribute('data-area'); if(a) areasSet.add(a); });
         const selArea = document.getElementById('filtroArea');
@@ -314,8 +315,24 @@
             const o=document.createElement('option'); o.value=area; o.textContent=area; selArea.appendChild(o);
         });
 
+        // ========== LÓGICA DE FILTRO POR DEFECTO ==========
         const estadoSelect = document.getElementById('filtroEstado');
-        if(estadoSelect) estadoSelect.value = 'Activo';
+        const urlParams = new URLSearchParams(window.location.search);
+        const estadoParam = urlParams.get('estado');
+
+        if (estadoParam) {
+            // Si hay parámetro en la URL, se selecciona ese estado
+            for (let i = 0; i < estadoSelect.options.length; i++) {
+                if (estadoSelect.options[i].value === estadoParam) {
+                    estadoSelect.value = estadoParam;
+                    break;
+                }
+            }
+        } else {
+            // Si NO hay parámetro, se fuerza "Activo" por defecto
+            estadoSelect.value = 'Activo';
+        }
+        // =================================================
 
         const tbody   = table.querySelector('tbody');
         const allRows = Array.from(tbody.querySelectorAll('tr'));
@@ -378,7 +395,8 @@
             });
         });
 
-        showPage(1,getVisibleRows());
+        // Aplicar filtro inicial
+        aplicarFiltros();
     }
 </script>
 </body>
