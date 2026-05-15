@@ -12,28 +12,20 @@ public class GraphService {
 
     /**
      * Construye la URL de embed de SharePoint.
-     *
-     * Si se provee un accessToken válido (obtenido del OAuth2 de Spring),
-     * lo inyecta en la URL para que SharePoint no necesite abrir ningún
-     * popup de autenticación dentro del iframe — esto resuelve el bug en móvil.
-     *
-     * Si el token es null o vacío, devuelve la URL sin token (comportamiento anterior).
+     * No inyecta token; confía en la cookie de sesión.
+     * Si el usuario no ha iniciado sesión en el navegador, SharePoint pedirá login en un popup.
+     * En móvil, es mejor redirigir a la URL directamente (no iframe).
      */
     public String obtenerEmbedUrl(String serial, String accessToken) {
-        UriComponentsBuilder builder = UriComponentsBuilder
+        // No usamos el token para evitar problemas de popups en móvil.
+        return UriComponentsBuilder
                 .fromUriString(sharepointEmbedUrl)
                 .queryParam("wdHideHeaders", "True")
                 .queryParam("wdDownloadButton", "True")
                 .queryParam("wdInConfigurator", "True")
                 .queryParam("wdAllowInteractivity", "True")
                 .queryParam("ActiveCell", serial + "!A1")
-                .queryParam("wdSheet", serial);
-
-        // Inyectar el access token para evitar el popup de login en móvil
-        if (accessToken != null && !accessToken.isBlank()) {
-            builder.queryParam("access_token", accessToken);
-        }
-
-        return builder.toUriString();
+                .queryParam("wdSheet", serial)
+                .toUriString();
     }
 }
