@@ -11,21 +11,33 @@ public class GraphService {
     private String sharepointEmbedUrl;
 
     /**
-     * Construye la URL de embed de SharePoint.
-     * No inyecta token; confía en la cookie de sesión.
-     * Si el usuario no ha iniciado sesión en el navegador, SharePoint pedirá login en un popup.
-     * En móvil, es mejor redirigir a la URL directamente (no iframe).
+     * Construye la URL de embebido de SharePoint.
+     * No añade el token porque SharePoint no lo acepta en la URL.
+     * La autenticación se hace mediante cookies de sesión.
      */
     public String obtenerEmbedUrl(String serial, String accessToken) {
-        // No usamos el token para evitar problemas de popups en móvil.
-        return UriComponentsBuilder
-                .fromUriString(sharepointEmbedUrl)
-                .queryParam("wdHideHeaders", "True")
+        if (sharepointEmbedUrl == null || sharepointEmbedUrl.isBlank()) {
+            return "";
+        }
+
+        // La URL base ya debe incluir el sourcedoc y action=embedview
+        // Solo añadimos parámetros adicionales útiles
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(sharepointEmbedUrl);
+
+        // Parámetros opcionales para mejorar la experiencia
+        builder.queryParam("wdHideHeaders", "True")
                 .queryParam("wdDownloadButton", "True")
                 .queryParam("wdInConfigurator", "True")
-                .queryParam("wdAllowInteractivity", "True")
-                .queryParam("ActiveCell", serial + "!A1")
-                .queryParam("wdSheet", serial)
-                .toUriString();
+                .queryParam("wdAllowInteractivity", "True");
+
+        // Si la URL base no contiene ActiveCell, lo añadimos (útil si el serial se usa para ir a la celda)
+        if (!sharepointEmbedUrl.contains("ActiveCell")) {
+            builder.queryParam("ActiveCell", serial + "!A1");
+        }
+        if (!sharepointEmbedUrl.contains("wdSheet")) {
+            builder.queryParam("wdSheet", serial);
+        }
+
+        return builder.toUriString();
     }
 }
