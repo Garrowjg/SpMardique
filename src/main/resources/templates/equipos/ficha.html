@@ -25,7 +25,7 @@
             --shadow:0 10px 25px rgba(15,23,42,.06), 0 4px 10px rgba(15,23,42,.04);
         }
         *{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:'Segoe UI',system-ui,sans-serif;background:linear-gradient(180deg,#F4F7FB 0%,#EDF2F7 100%);color:var(--text);display:flex;min-height:100vh;overflow-x:hidden}
+        body{zoom:0.75;font-family:'Segoe UI',system-ui,sans-serif;background:linear-gradient(180deg,#F4F7FB 0%,#EDF2F7 100%);color:var(--text);display:flex;min-height:100vh;overflow-x:hidden}
         .sidebar{width:260px;background:linear-gradient(180deg,#0F172A 0%, #111827 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:200;transition:transform .3s ease;border-right:1px solid rgba(255,255,255,.04)}
         .sidebar::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--gold),#F5C84C,var(--blue))}
         .sidebar.collapsed{transform:translateX(-100%)}
@@ -406,13 +406,21 @@
         Dashboard
     </a>
     <div class="s-sect">Inventario</div>
-    <a th:href="@{/equipos}" class="s-link">
+    <a th:href="@{/equipos}" class="s-link active">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
         Equipos
     </a>
     <a th:href="@{/equipos/nuevo}" class="s-link">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
         Registrar equipo
+    </a>
+    <a th:href="@{/inventario}" class="s-link">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M9 8h6v8H9z"/><path d="M4 12h16"/></svg>
+        Inventario TI
+    </a>
+    <a th:href="@{/formatos}" class="s-link">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Formatos
     </a>
     <div class="s-bottom">SysInventory v1.0 <br> Mardique Sociedad Portuaria</div>
 </aside>
@@ -501,6 +509,7 @@
                         <tr><th>MAC</th><td><span class="chip" th:text="${equipo.mac != null ? equipo.mac : '—'}">—</span></td></tr>
                         <tr><th>RAM</th><td th:text="${equipo.ram != null ? equipo.ram : '—'}">—</td></tr>
                         <tr><th>Disco</th><td th:text="${equipo.disco != null ? equipo.disco : '—'}">—</td></tr>
+                        <tr><th>Procesador</th><td th:text="${equipo.procesador != null ? equipo.procesador : '—'}">—</td></tr>
                         <tr><th>Estado físico</th><td th:text="${equipo.estadoFisico != null ? equipo.estadoFisico : '—'}">—</td></tr>
                         <tr><th>Fecha entrega</th><td th:text="${equipo.fechaEntrega != null ? equipo.fechaEntrega : '—'}">—</td></tr>
                         <tr><th>Préstamo</th><td><span style="color:var(--green);font-weight:600" th:if="${equipo.esPrestamo}">Sí</span><span style="color:var(--muted)" th:unless="${equipo.esPrestamo}">No</span></td></tr>
@@ -557,6 +566,11 @@
                         <div class="fg"><label>Nuevo disco</label><select th:field="*{disco}" class="fc"><option value="">Sin cambio</option><option th:each="d : ${opcionesDisco}" th:value="${d}" th:text="${d}"></option></select></div>
                         <div class="fg"><label>Estado físico</label><select th:field="*{estadoFisico}" class="fc"><option value="">Sin cambio</option><option value="Nuevo">Nuevo</option><option value="Usado - Bueno">Usado - Bueno</option><option value="Usado - Regular">Usado - Regular</option><option value="Dañado">Dañado</option><option value="Para reparar">Para reparar</option></select></div>
                         <div class="fg"><label>MAC</label><input type="text" th:field="*{mac}" class="fc" placeholder="XX:XX:XX:XX:XX:XX"/></div>
+                    </div>
+                    <div class="form-row c2a" style="margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--border)">
+                        <div class="fg"><label>Procesador</label><input type="text" th:field="*{procesador}" class="fc" placeholder="Ej: Intel Core i5-10400, AMD Ryzen 5 5600"/></div>
+                        <div class="fg"></div>
+                        <div></div>
                     </div>
                     <div class="form-row c2a" style="margin-top:.75rem;padding-top:.75rem;border-top:none">
                         <div class="fg"><label>Descripción del cambio</label><input type="text" th:field="*{descripcion}" class="fc" placeholder="Ej: Ampliación de RAM, cambio de disco..."/></div>

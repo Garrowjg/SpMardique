@@ -30,6 +30,7 @@ public class Equipo {
     private String mac;               // Dirección MAC
     private String ram;
     private String disco;
+    private String procesador;        // Procesador del equipo
     private String estadoFisico;      // Nuevo, Usado, Funcional, Dañado
     private String observaciones;
 
@@ -85,6 +86,9 @@ public class Equipo {
 
     public String getDisco() { return disco; }
     public void setDisco(String disco) { this.disco = disco; }
+
+    public String getProcesador() { return procesador; }
+    public void setProcesador(String procesador) { this.procesador = procesador; }
 
     public String getEstadoFisico() { return estadoFisico; }
     public void setEstadoFisico(String estadoFisico) { this.estadoFisico = estadoFisico; }

@@ -22,6 +22,7 @@ public class EquipoRequestDTO {
     private String mac;
     private String ram;
     private String disco;
+    private String procesador;
     private String estadoFisico;
     private String estado;
     private String observaciones;
@@ -56,6 +57,8 @@ public class EquipoRequestDTO {
     public void setRam(String ram) { this.ram = ram; }
     public String getDisco() { return disco; }
     public void setDisco(String disco) { this.disco = disco; }
+    public String getProcesador() { return procesador; }
+    public void setProcesador(String procesador) { this.procesador = procesador; }
     public String getEstadoFisico() { return estadoFisico; }
     public void setEstadoFisico(String estadoFisico) { this.estadoFisico = estadoFisico; }
     public String getEstado() { return estado; }

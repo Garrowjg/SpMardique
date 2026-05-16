@@ -3,6 +3,24 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <!--
+        NOTA PARA EL BACKEND (EquipoWebController):
+        Reemplazar las listas 'areas' y 'cargos' enviadas al modelo con:
+
+        ÁREAS:
+        model.addAttribute("areas", List.of(
+            "Control de Acceso - Seguridad","TI","Oficios Varios","HSQ",
+            "Contabilidad","Talento Humano","Compras",
+            "Documentación y Básculas","Operaciones","Zona Franca",
+            "Seguridad","SSTV"
+        ));
+
+        CARGOS:
+        model.addAttribute("cargos", List.of(
+            "Analista","Auxiliar","Coordinador","Supervisor",
+            "Representante Legal","Gerente","Presidente"
+        ));
+    -->
     <title>Registrar equipo · SysInventory | Mardique</title>
     <style>
         :root{
@@ -13,7 +31,7 @@
             --r:18px;--shadow:0 10px 25px rgba(15,23,42,.06),0 4px 10px rgba(15,23,42,.04);
         }
         *{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:'Segoe UI',system-ui,sans-serif;background:linear-gradient(180deg,#F4F7FB 0%,#EDF2F7 100%);color:var(--text);display:flex;min-height:100vh;overflow-x:hidden}
+        body{zoom:0.75;font-family:'Segoe UI',system-ui,sans-serif;background:linear-gradient(180deg,#F4F7FB 0%,#EDF2F7 100%);color:var(--text);display:flex;min-height:100vh;overflow-x:hidden}
 
         /* SIDEBAR */
         .sidebar{width:260px;background:linear-gradient(180deg,#0F172A 0%,#111827 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:200;transition:transform .3s cubic-bezier(.4,0,.2,1);border-right:1px solid rgba(255,255,255,.04)}
@@ -193,6 +211,14 @@
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
         Registrar equipo
     </a>
+    <a th:href="@{/inventario}" class="s-link">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M9 8h6v8H9z"/><path d="M4 12h16"/></svg>
+        Inventario TI
+    </a>
+    <a th:href="@{/formatos}" class="s-link">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Formatos
+    </a>
     <div class="s-bottom">SysInventory v1.0 <br>Mardique Sociedad Portuaria</div>
 </aside>
 
@@ -273,14 +299,22 @@
                                 <option th:each="a : ${areas}" th:value="${a}" th:text="${a}"></option>
                             </select>
                             <span th:if="${#fields.hasErrors('area')}" th:errors="*{area}" class="err"></span>
+                            <button type="button" class="add-custom-btn" onclick="abrirModalArea()">
+                                <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" width="11" height="11"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                Nueva área
+                            </button>
                         </div>
                         <div class="form-group">
                             <label>Cargo <span class="req">*</span></label>
-                            <select th:field="*{cargo}" th:class="${#fields.hasErrors('cargo')} ? 'fc error' : 'fc'">
+                            <select th:field="*{cargo}" th:class="${#fields.hasErrors('cargo')} ? 'fc error' : 'fc'" id="selCargo">
                                 <option value="">Seleccionar cargo</option>
                                 <option th:each="c : ${cargos}" th:value="${c}" th:text="${c}"></option>
                             </select>
                             <span th:if="${#fields.hasErrors('cargo')}" th:errors="*{cargo}" class="err"></span>
+                            <button type="button" class="add-custom-btn" onclick="abrirModalCargo()">
+                                <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" width="11" height="11"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                Nuevo cargo
+                            </button>
                         </div>
                         <div class="form-group">
                             <label>Responsable <span class="req">*</span></label>
@@ -409,6 +443,10 @@
                     </div>
                     <div class="fg c2" style="margin-bottom:1rem">
                         <div class="form-group">
+                            <label>Procesador</label>
+                            <input type="text" th:field="*{procesador}" class="fc" placeholder="Ej: Intel Core i5-1235U, AMD Ryzen 5 5600U"/>
+                        </div>
+                        <div class="form-group">
                             <label>Disco</label>
                             <select class="fc" id="selDisco" onchange="handleCustomSelect(this,'inpDiscoCustom','hidDisco')">
                                 <option value="">Seleccionar</option>
@@ -470,6 +508,11 @@
 </div>
 
 <!-- Modales -->
+<!-- Modal Nueva Área -->
+<div class="modal-overlay" id="modalArea"><div class="modal"><h3>Agregar nueva área</h3><div class="form-group"><input type="text" id="inpNuevaArea" class="fc" placeholder="Nombre del área"/></div><div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="cerrarModal('modalArea')">Cancelar</button><button type="button" class="btn btn-primary" onclick="guardarNuevaArea()">Agregar</button></div></div></div>
+<!-- Modal Nuevo Cargo -->
+<div class="modal-overlay" id="modalCargo"><div class="modal"><h3>Agregar nuevo cargo</h3><div class="form-group"><input type="text" id="inpNuevoCargo" class="fc" placeholder="Nombre del cargo"/></div><div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="cerrarModal('modalCargo')">Cancelar</button><button type="button" class="btn btn-primary" onclick="guardarNuevoCargo()">Agregar</button></div></div></div>
+
 <div class="modal-overlay" id="modalMarca"><div class="modal"><h3>Agregar nueva marca</h3><div class="form-group"><input type="text" id="inpNuevaMarca" class="fc" placeholder="Nombre de la marca"/></div><div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="cerrarModal('modalMarca')">Cancelar</button><button type="button" class="btn btn-primary" onclick="guardarNuevaMarca()">Agregar</button></div></div></div>
 <div class="modal-overlay" id="modalModelo"><div class="modal"><h3>Agregar nuevo modelo</h3><div class="form-group"><input type="text" id="inpNuevoModelo" class="fc" placeholder="Nombre del modelo"/></div><div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="cerrarModal('modalModelo')">Cancelar</button><button type="button" class="btn btn-primary" onclick="guardarNuevoModelo()">Agregar</button></div></div></div>
 <div class="modal-overlay" id="modalRam"><div class="modal"><h3>Agregar nueva opción de RAM</h3><div class="form-group"><input type="text" id="inpNuevaRam" class="fc" placeholder="Ej: 12 GB DDR5"/></div><div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="cerrarModal('modalRam')">Cancelar</button><button type="button" class="btn btn-primary" onclick="guardarNuevaRam()">Agregar</button></div></div></div>
@@ -495,6 +538,42 @@
     overlay.addEventListener('click', closeSidebar);
     sidebar.querySelectorAll('.s-link').forEach(l => l.addEventListener('click', () => { if(window.innerWidth<=768) closeSidebar(); }));
     window.addEventListener('resize', () => { if(window.innerWidth>768) closeSidebar(); });
+
+    // ÁREAS Y CARGOS DE MARDIQUE SP + persistencia localStorage
+    function abrirModalArea(){ abrirModal('modalArea'); setTimeout(()=>document.getElementById('inpNuevaArea').focus(),80); }
+    function abrirModalCargo(){ abrirModal('modalCargo'); setTimeout(()=>document.getElementById('inpNuevoCargo').focus(),80); }
+
+    async function guardarNuevaArea(){
+        const val = document.getElementById('inpNuevaArea').value.trim(); if(!val) return;
+        const res = await fetch('/api/catalogos/areas', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({valor: val})
+        });
+        if(res.ok){
+            const sel = document.getElementById('selArea');
+            const opt = document.createElement('option'); opt.value=val; opt.textContent=val;
+            sel.appendChild(opt); sel.value=val;
+        }
+        cerrarModal('modalArea'); document.getElementById('inpNuevaArea').value='';
+    }
+
+    async function guardarNuevoCargo(){
+        const val = document.getElementById('inpNuevoCargo').value.trim(); if(!val) return;
+        const res = await fetch('/api/catalogos/cargos', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({valor: val})
+        });
+        if(res.ok){
+            const sel = document.getElementById('selCargo');
+            const opt = document.createElement('option'); opt.value=val; opt.textContent=val;
+            sel.appendChild(opt); sel.value=val;
+        }
+        cerrarModal('modalCargo'); document.getElementById('inpNuevoCargo').value='';
+    }
+
+    document.addEventListener('DOMContentLoaded', function(){
+        const firstError=document.querySelector('.fc.error'); if(firstError) firstError.focus();
+    });
 
     // FORMULARIO
     function filtrarModelos(marca){
@@ -560,28 +639,63 @@
     function abrirModalRam(){ abrirModal('modalRam'); setTimeout(()=>document.getElementById('inpNuevaRam').focus(),80); }
     function abrirModalDisco(){ abrirModal('modalDisco'); setTimeout(()=>document.getElementById('inpNuevoDisco').focus(),80); }
 
-    function guardarNuevaMarca(){
+    async function guardarNuevaMarca(){
         const val=document.getElementById('inpNuevaMarca').value.trim(); if(!val) return;
-        const sel=document.getElementById('selMarca'); const opt=document.createElement('option');
-        opt.value=val; opt.textContent=val; sel.insertBefore(opt,sel.querySelector('[value="__OTRA__"]'));
-        sel.value=val; MARCAS_MODELOS[val]=[]; filtrarModelos(val); cerrarModal('modalMarca'); document.getElementById('inpNuevaMarca').value='';
+        const res = await fetch('/api/catalogos/marcas', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({valor: val})
+        });
+        if(res.ok){
+            const sel=document.getElementById('selMarca');
+            const opt=document.createElement('option'); opt.value=val; opt.textContent=val;
+            sel.insertBefore(opt,sel.querySelector('[value="__OTRA__"]'));
+            sel.value=val; MARCAS_MODELOS[val]=[]; filtrarModelos(val);
+        }
+        cerrarModal('modalMarca'); document.getElementById('inpNuevaMarca').value='';
     }
-    function guardarNuevoModelo(){
+
+    async function guardarNuevoModelo(){
         const val=document.getElementById('inpNuevoModelo').value.trim(); if(!val) return;
         const marcaActual=document.getElementById('selMarca').value;
-        if(marcaActual&&MARCAS_MODELOS[marcaActual]){ MARCAS_MODELOS[marcaActual].push(val); filtrarModelos(marcaActual); document.getElementById('selModelo').value=val; }
+        if(!marcaActual) return;
+        const res = await fetch('/api/catalogos/modelos/' + encodeURIComponent(marcaActual), {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({valor: val})
+        });
+        if(res.ok){
+            if(!MARCAS_MODELOS[marcaActual]) MARCAS_MODELOS[marcaActual]=[];
+            MARCAS_MODELOS[marcaActual].push(val);
+            filtrarModelos(marcaActual);
+            document.getElementById('selModelo').value=val;
+        }
         cerrarModal('modalModelo'); document.getElementById('inpNuevoModelo').value='';
     }
-    function guardarNuevaRam(){
+
+    async function guardarNuevaRam(){
         const val=document.getElementById('inpNuevaRam').value.trim(); if(!val) return;
-        const sel=document.getElementById('selRam'); const opt=document.createElement('option');
-        opt.value=val; opt.textContent=val; sel.insertBefore(opt,sel.querySelector('[value="__OTRA__"]')); sel.value=val;
+        const res = await fetch('/api/catalogos/ram', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({valor: val})
+        });
+        if(res.ok){
+            const sel=document.getElementById('selRam');
+            const opt=document.createElement('option'); opt.value=val; opt.textContent=val;
+            sel.insertBefore(opt,sel.querySelector('[value="__OTRA__"]')); sel.value=val;
+        }
         cerrarModal('modalRam'); document.getElementById('inpNuevaRam').value='';
     }
-    function guardarNuevoDisco(){
+
+    async function guardarNuevoDisco(){
         const val=document.getElementById('inpNuevoDisco').value.trim(); if(!val) return;
-        const sel=document.getElementById('selDisco'); const opt=document.createElement('option');
-        opt.value=val; opt.textContent=val; sel.insertBefore(opt,sel.querySelector('[value="__OTRA__"]')); sel.value=val;
+        const res = await fetch('/api/catalogos/disco', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({valor: val})
+        });
+        if(res.ok){
+            const sel=document.getElementById('selDisco');
+            const opt=document.createElement('option'); opt.value=val; opt.textContent=val;
+            sel.insertBefore(opt,sel.querySelector('[value="__OTRA__"]')); sel.value=val;
+        }
         cerrarModal('modalDisco'); document.getElementById('inpNuevoDisco').value='';
     }
 
@@ -594,9 +708,7 @@
         hidDisco.value=(discoInp.style.display!=='none')?discoInp.value:discoSel.value;
     });
 
-    document.addEventListener('DOMContentLoaded',function(){
-        const firstError=document.querySelector('.fc.error'); if(firstError) firstError.focus();
-    });
+    // DOMContentLoaded ya está manejado arriba junto a áreas/cargos
 </script>
 </body>
 </html>

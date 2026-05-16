@@ -37,6 +37,10 @@ public class EquipoService {
     }
 
     public Equipo buscarPorCodigo(String codigo) {
+        return equipoRepository.findByCodigo(codigo).orElse(null);
+    }
+
+    public Equipo buscarPorCodigoOLanzar(String codigo) {
         return equipoRepository.findByCodigo(codigo)
                 .orElseThrow(() -> new RuntimeException("Equipo no encontrado: " + codigo));
     }
@@ -72,6 +76,7 @@ public class EquipoService {
         equipo.setMac(dto.getMac());
         equipo.setRam(dto.getRam());
         equipo.setDisco(dto.getDisco());
+        equipo.setProcesador(dto.getProcesador());
         equipo.setEstadoFisico(dto.getEstadoFisico());
         equipo.setEstado(dto.getEstado() != null && !dto.getEstado().isBlank() ? dto.getEstado() : "Activo");
         equipo.setObservaciones(dto.getObservaciones());
@@ -101,7 +106,7 @@ public class EquipoService {
     }
 
     public Equipo actualizar(String codigo, EquipoRequestDTO dto) {
-        Equipo equipo = buscarPorCodigo(codigo);
+        Equipo equipo = buscarPorCodigoOLanzar(codigo);
         equipo.setResponsable(dto.getResponsable());
         equipo.setCargo(dto.getCargo());
         equipo.setArea(dto.getArea());
@@ -112,6 +117,7 @@ public class EquipoService {
         equipo.setMac(dto.getMac());
         equipo.setRam(dto.getRam());
         equipo.setDisco(dto.getDisco());
+        equipo.setProcesador(dto.getProcesador());
         equipo.setEstadoFisico(dto.getEstadoFisico());
         equipo.setEstado(dto.getEstado());
         equipo.setObservaciones(dto.getObservaciones());
@@ -139,34 +145,53 @@ public class EquipoService {
     }
 
     public Equipo cambiarPropietario(String codigo, CambioPropietarioDTO dto) {
-        Equipo equipo = buscarPorCodigo(codigo);
-        String propietarioAnterior = equipo.getResponsable();
-        String cargoAnterior = equipo.getCargo();
-        String areaAnterior = equipo.getArea();
+        Equipo equipo = buscarPorCodigoOLanzar(codigo);
+        String propietarioAnterior = equipo.getResponsable() != null ? equipo.getResponsable() : "Sin asignar";
+        String cargoAnterior       = equipo.getCargo()       != null ? equipo.getCargo()       : "Sin asignar";
+        String areaAnterior        = equipo.getArea()        != null ? equipo.getArea()        : "Sin asignar";
 
-        boolean areaCambio = (dto.getNuevaArea() != null && !dto.getNuevaArea().isBlank() && !dto.getNuevaArea().equals(areaAnterior));
-        boolean cargoCambio = (dto.getNuevoCargo() != null && !dto.getNuevoCargo().isBlank() && !dto.getNuevoCargo().equals(cargoAnterior));
+        // Equipo venía de stock/baja: area y cargo son null → SIEMPRE hay cambio
+        boolean estabaEnStockOBaja = equipo.getArea() == null || equipo.getCargo() == null;
+
+        boolean areaCambio  = estabaEnStockOBaja ||
+                (dto.getNuevaArea()  != null && !dto.getNuevaArea().isBlank()  && !dto.getNuevaArea().equals(equipo.getArea()));
+        boolean cargoCambio = estabaEnStockOBaja ||
+                (dto.getNuevoCargo() != null && !dto.getNuevoCargo().isBlank() && !dto.getNuevoCargo().equals(equipo.getCargo()));
 
         equipo.setResponsable(dto.getNuevoResponsable());
-        equipo.setCargo(dto.getNuevoCargo());
-        if (areaCambio) {
-            equipo.setArea(dto.getNuevaArea());
-        }
+        equipo.setCargo(dto.getNuevoCargo() != null && !dto.getNuevoCargo().isBlank() ? dto.getNuevoCargo() : equipo.getCargo());
 
-        // Si cambió área o cargo, regenerar el código
+        String nuevaArea = (dto.getNuevaArea() != null && !dto.getNuevaArea().isBlank())
+                ? dto.getNuevaArea()
+                : equipo.getArea();
+        equipo.setArea(nuevaArea);
+
+        // Regenerar código si cambiaron área o cargo (incluye reactivación desde stock/baja)
         if (areaCambio || cargoCambio) {
-            String nuevoCodigo = codigoGenerador.regenerarCodigo(equipo.getArea(), equipo.getCargo());
-            equipo.setCodigo(nuevoCodigo);
+            // Validar que el área y cargo nuevos no estén ya ocupados por OTRO equipo activo
+            String areaFinal  = equipo.getArea();
+            String cargoFinal = equipo.getCargo();
+            if (areaFinal != null && cargoFinal != null) {
+                List<Equipo> existentes = equipoRepository.findByAreaAndCargo(areaFinal, cargoFinal);
+                // Filtrar el propio equipo de la lista
+                existentes = existentes.stream()
+                        .filter(e -> !e.getId().equals(equipo.getId()))
+                        .collect(java.util.stream.Collectors.toList());
+                if (!existentes.isEmpty()) {
+                    throw new RuntimeException("Ya existe un equipo activo en el área '"
+                            + areaFinal + "' con el cargo '" + cargoFinal
+                            + "'. Libera ese puesto antes de reasignar.");
+                }
+                String nuevoCodigo = codigoGenerador.generar(areaFinal, cargoFinal);
+                equipo.setCodigo(nuevoCodigo);
+            }
         }
 
         String descripcion = "Cambio de propietario: " + propietarioAnterior + " (" + cargoAnterior + ")"
-                + " → " + dto.getNuevoResponsable() + " (" + dto.getNuevoCargo() + ")"
+                + " → " + dto.getNuevoResponsable() + " (" + equipo.getCargo() + ")"
                 + (dto.getMotivo() != null && !dto.getMotivo().isBlank() ? " | Motivo: " + dto.getMotivo() : "");
-        if (areaCambio) {
-            descripcion += " | Área: " + areaAnterior + " → " + dto.getNuevaArea();
-        }
-        if (cargoCambio) {
-            descripcion += " | Cargo: " + cargoAnterior + " → " + dto.getNuevoCargo();
+        if (!areaAnterior.equals(equipo.getArea() != null ? equipo.getArea() : "Sin asignar")) {
+            descripcion += " | Área: " + areaAnterior + " → " + equipo.getArea();
         }
 
         String ing = dto.getIngeniero() != null && !dto.getIngeniero().isBlank() ? dto.getIngeniero() : "Sistema";
@@ -176,7 +201,7 @@ public class EquipoService {
     }
 
     public Equipo actualizarHardware(String codigo, ActualizarHardwareDTO dto) {
-        Equipo equipo = buscarPorCodigo(codigo);
+        Equipo equipo = buscarPorCodigoOLanzar(codigo);
         StringBuilder cambios = new StringBuilder("Actualización de hardware:");
 
         if (dto.getRam() != null && !dto.getRam().isBlank()) {
@@ -186,6 +211,10 @@ public class EquipoService {
         if (dto.getDisco() != null && !dto.getDisco().isBlank()) {
             cambios.append(" Disco: ").append(equipo.getDisco()).append(" → ").append(dto.getDisco()).append(";");
             equipo.setDisco(dto.getDisco());
+        }
+        if (dto.getProcesador() != null && !dto.getProcesador().isBlank()) {
+            cambios.append(" Procesador: ").append(equipo.getProcesador()).append(" → ").append(dto.getProcesador()).append(";");
+            equipo.setProcesador(dto.getProcesador());
         }
         if (dto.getMac() != null && !dto.getMac().isBlank()) {
             cambios.append(" MAC: ").append(dto.getMac()).append(";");
@@ -206,7 +235,7 @@ public class EquipoService {
     }
 
     public Equipo ponerEnMantenimiento(String codigo, String motivo) {
-        Equipo equipo = buscarPorCodigo(codigo);
+        Equipo equipo = buscarPorCodigoOLanzar(codigo);
         equipo.setEstado("En mantenimiento");
         String evento = "Equipo enviado a mantenimiento. Responsable anterior: " + (equipo.getResponsable() != null ? equipo.getResponsable() : "Desconocido")
                 + ", Área: " + (equipo.getArea() != null ? equipo.getArea() : "Sin asignar")
@@ -216,14 +245,14 @@ public class EquipoService {
     }
 
     public Equipo activarEquipo(String codigo) {
-        Equipo equipo = buscarPorCodigo(codigo);
+        Equipo equipo = buscarPorCodigoOLanzar(codigo);
         equipo.setEstado("Activo");
         equipo.getHistorial().add(nuevoEvento("Equipo reactivado", "Sistema", "ESTADO"));
         return equipoRepository.save(equipo);
     }
 
     public Equipo ponerEnStock(String codigo, String motivo) {
-        Equipo equipo = buscarPorCodigo(codigo);
+        Equipo equipo = buscarPorCodigoOLanzar(codigo);
         String responsableAnterior = equipo.getResponsable() != null ? equipo.getResponsable() : "Desconocido";
         String areaAnterior = equipo.getArea() != null ? equipo.getArea() : "Sin asignar";
         String cargoAnterior = equipo.getCargo() != null ? equipo.getCargo() : "Sin asignar";
@@ -249,7 +278,7 @@ public class EquipoService {
     }
 
     public Equipo darDeBaja(String codigo, String motivo) {
-        Equipo equipo = buscarPorCodigo(codigo);
+        Equipo equipo = buscarPorCodigoOLanzar(codigo);
         String responsableAnterior = equipo.getResponsable() != null ? equipo.getResponsable() : "Desconocido";
         String areaAnterior = equipo.getArea() != null ? equipo.getArea() : "Sin asignar";
         String cargoAnterior = equipo.getCargo() != null ? equipo.getCargo() : "Sin asignar";
@@ -275,14 +304,14 @@ public class EquipoService {
     }
 
     public Equipo agregarHistorial(String codigo, HistorialEventoDTO dto) {
-        Equipo equipo = buscarPorCodigo(codigo);
+        Equipo equipo = buscarPorCodigoOLanzar(codigo);
         String tipo = dto.getTipo() != null ? dto.getTipo() : "GENERAL";
         equipo.getHistorial().add(nuevoEvento(dto.getEvento(), dto.getIngeniero(), tipo));
         return equipoRepository.save(equipo);
     }
 
     public void eliminar(String codigo) {
-        equipoRepository.delete(buscarPorCodigo(codigo));
+        equipoRepository.delete(buscarPorCodigoOLanzar(codigo));
     }
 
     public String obtenerQRBase64(String codigo) throws WriterException, IOException {
@@ -294,7 +323,7 @@ public class EquipoService {
     }
 
     public Equipo eliminarPeriferico(String codigo, int index, String motivo) {
-        Equipo equipo = buscarPorCodigo(codigo);
+        Equipo equipo = buscarPorCodigoOLanzar(codigo);
         if (index >= 0 && index < equipo.getPerifericos().size()) {
             Periferico eliminado = equipo.getPerifericos().remove(index);
             String descripcion = "Periférico eliminado: " + eliminado.getTipo()
@@ -310,7 +339,7 @@ public class EquipoService {
 
     // ================= NUEVO: AGREGAR PERIFÉRICO =================
     public Equipo agregarPeriferico(String codigo, String tipo, String marca, String modelo, String serial) {
-        Equipo equipo = buscarPorCodigo(codigo);
+        Equipo equipo = buscarPorCodigoOLanzar(codigo);
 
         if (equipo.getPerifericos() == null) {
             equipo.setPerifericos(new ArrayList<>());

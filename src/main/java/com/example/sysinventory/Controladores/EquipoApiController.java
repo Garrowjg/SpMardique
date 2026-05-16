@@ -4,12 +4,15 @@ import com.example.sysinventory.DTOs.EquipoRequestDTO;
 import com.example.sysinventory.DTOs.HistorialEventoDTO;
 import com.example.sysinventory.Modelos.Equipo;
 import com.example.sysinventory.Servicios.EquipoService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -34,7 +37,17 @@ public class EquipoApiController {
             return m;
         }).toList();
     }
+    @Value("${azure.inventario-download-url}")
+    private String inventarioDownloadUrl;
 
+    @GetMapping("/inventario/download")
+    public void descargarInventario(HttpServletResponse response) throws IOException {
+        if (inventarioDownloadUrl == null || inventarioDownloadUrl.isBlank()) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "URL de descarga no configurada");
+            return;
+        }
+        response.sendRedirect(inventarioDownloadUrl);
+    }
     @GetMapping("/equipos")
     public List<Equipo> listar() {
         return equipoService.listarTodos();
